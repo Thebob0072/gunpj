@@ -1,103 +1,284 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect, FC } from 'react';
+import Header from '@/components/Header';
+import TaskList from '@/components/TaskList';
+import Dashboard from '@/components/Dashboard';
+import TaskModal from '@/components/TaskModal';
+import { Task, NewTask, DashboardData } from '@/types';
+
+// !!! IMPORTANT: Paste your new Google Apps Script Web App URL here !!!
+const API_URL = "https://script.google.com/macros/s/AKfycbx_OO5WocNocXbw_Yr8yb6JI-pfezhlbX61gfLsBwSEPqpLqMKJo-d267sGqGXRa_Oh/exec";
+
+// Telegram API settings
+const TELEGRAM_BOT_TOKEN = "8418566183:AAGArbqUQFzQPS2FP5CIxtPVVUN12xmaFTY";
+const TELEGRAM_CHAT_ID = "-4944205160";
+
+const sendTelegramNotification = async (message: string) => {
+  const telegramApiUrl = 'http://localhost:3001/api/send-telegram-notification';
+  
+  try {
+    const response = await fetch(telegramApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to send Telegram notification:', await response.text());
+    } else {
+      console.log('Telegram notification sent successfully.');
+    }
+  } catch (error) {
+    console.error('Error sending Telegram notification:', error);
+  }
+};
+
+const mockDashboardData: DashboardData[] = [
+  { name: 'ส.ค.', 'งานเสร็จสิ้น': 5 },
+  { name: 'ก.ย.', 'งานเสร็จสิ้น': 8 },
+  { name: 'ต.ค.', 'งานเสร็จสิ้น': 12 },
+];
+
+const HomePage: FC = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [view, setView] = useState<'list' | 'dashboard'>('list');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [message, setMessage] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!API_URL.startsWith('https')) {
+      setError('กรุณาใส่ URL ของ Google Apps Script Web App ในไฟล์ app/page.tsx');
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error('ไม่สามารถดึงข้อมูลงานจากฐานข้อมูลได้');
+        }
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setTasks(data);
+        } else {
+          console.error("Data received from API is not an array:", data);
+          throw new Error('ข้อมูลที่ได้รับจาก API ไม่ใช่รูปแบบที่ถูกต้อง');
+        }
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  const checkOverdueTasks = () => {
+    const now = new Date();
+    tasks.forEach(task => {
+      const endDate = new Date(task.endDate);
+      if (task.status !== 'Completed' && endDate < now) {
+        const notificationMessage = `⚠️ งานเกินกำหนดเวลา: "${task.title}" (ผู้รับผิดชอบ: ${task.assignee})`;
+        sendTelegramNotification(notificationMessage);
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (tasks.length > 0) {
+      checkOverdueTasks();
+      const intervalId = setInterval(checkOverdueTasks, 3600000); // Check every hour
+      return () => clearInterval(intervalId);
+    }
+  }, [tasks]);
+
+  const showMessage = (msg: string): void => {
+    setMessage(msg);
+    setTimeout(() => setMessage(''), 4000);
+  };
+
+  const handleOpenModalForAdd = () => {
+    setTaskToEdit(null);
+    setIsModalOpen(true);
+  };
+  
+  const handleOpenModalForEdit = (task: Task) => {
+    setTaskToEdit(task);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveTask = async (taskData: NewTask | Task) => {
+    const isEditing = (taskData as Task).id !== undefined;
+    const action = isEditing ? 'update' : 'create';
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({ action, task: taskData }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`ไม่สามารถ${isEditing ? 'แก้ไข' : 'เพิ่ม'}งานได้`);
+      }
+
+      const { task: savedTask }: { task: Task } = await response.json();
+      
+      if (isEditing) {
+        setTasks(prevTasks => prevTasks.map(t => t.id === savedTask.id ? savedTask : t));
+        showMessage(`แก้ไขงาน "${savedTask.title}" สำเร็จ!`);
+        sendTelegramNotification(`✅ งานถูกแก้ไขแล้ว: "${savedTask.title}" (ผู้รับผิดชอบ: ${savedTask.assignee})`);
+      } else {
+        setTasks(prevTasks => [...prevTasks, savedTask]);
+        showMessage(`มอบหมายงาน "${savedTask.title}" สำเร็จ!`);
+        sendTelegramNotification(`✍️ งานใหม่ถูกมอบหมาย: "${savedTask.title}" (ผู้รับผิดชอบ: ${savedTask.assignee}) กำหนดส่ง: ${savedTask.endDate}`);
+      }
+
+    } catch (err: any) {
+      showMessage(`เกิดข้อผิดพลาด: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleCompleteTask = async (task: Task) => {
+    const isConfirmed = window.confirm(`คุณแน่ใจหรือไม่ว่างาน "${task.title}" เสร็จสิ้นแล้ว?`);
+    if (!isConfirmed) return;
+
+    const completedTask = { ...task, status: 'Completed' as 'Completed' };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({ action: 'update', task: completedTask }),
+      });
+
+      if (!response.ok) {
+        throw new Error('ไม่สามารถอัปเดตสถานะงานได้');
+      }
+
+      const { task: savedTask }: { task: Task } = await response.json();
+      
+      setTasks(prevTasks => prevTasks.map(t => t.id === savedTask.id ? savedTask : t));
+      showMessage(`งาน "${savedTask.title}" เสร็จสิ้นแล้ว!`);
+      sendTelegramNotification(`🎉 งานเสร็จสิ้นแล้ว: "${savedTask.title}"`);
+
+    } catch (err: any) {
+      showMessage(`เกิดข้อผิดพลาด: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const isConfirmed = window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?');
+    if (!isConfirmed) return;
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({ action: 'delete', id: taskId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('ไม่สามารถลบงานได้');
+      }
+
+      await response.json();
+      
+      setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+      showMessage('ลบงานสำเร็จ!');
+
+    } catch (err: any) {
+      showMessage(`เกิดข้อผิดพลาด: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleSendNotification = (task: Task) => {
+    const isConfirmed = window.confirm(`คุณต้องการส่งข้อความแจ้งเตือนสำหรับงาน "${task.title}" หรือไม่?`);
+    if (!isConfirmed) return;
+
+    const calculateTimeLeft = (endDate: string) => {
+      const now = new Date();
+      const end = new Date(endDate);
+      const timeLeft = end.getTime() - now.getTime();
+    
+      if (timeLeft <= 0) {
+        return 'เกินกำหนดเวลา';
+      }
+    
+      const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
+    
+      let result = '';
+      if (days > 0) result += `${days} วัน `;
+      if (hours > 0) result += `${hours} ชั่วโมง `;
+      if (minutes > 0) result += `${minutes} นาที`;
+    
+      return result.trim() || 'เหลือไม่ถึง 1 นาที';
+    };
+
+    const notificationMessage = `🔔 แจ้งเตือน: งาน "${task.title}" (ผู้รับผิดชอบ: ${task.assignee}) เหลือเวลา: ${calculateTimeLeft(task.endDate)}`;
+    sendTelegramNotification(notificationMessage);
+    showMessage(`ส่งข้อความแจ้งเตือนสำหรับงาน "${task.title}" แล้ว!`);
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <div className="text-center p-12 text-neutral-500">กำลังโหลดข้อมูลจาก Google Sheet...</div>;
+    }
+    if (error) {
+      return <div className="text-center p-12 text-red-600 bg-red-50 rounded-lg">เกิดข้อผิดพลาด: {error}</div>;
+    }
+    if (view === 'list') {
+      return <TaskList tasks={tasks} onEdit={handleOpenModalForEdit} onDelete={handleDeleteTask} onComplete={handleCompleteTask} onSendNotification={handleSendNotification} />;
+    }
+    return <Dashboard tasks={tasks} dashboardData={mockDashboardData} />;
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="min-h-screen bg-neutral-100 w-full py-10 flex justify-center">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6">
+        <Header 
+          view={view}
+          setView={setView}
+          onAddTask={handleOpenModalForAdd}
         />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {message && (
+          <div className="bg-amber-100 text-amber-800 p-3 rounded-xl my-4 text-center font-medium">
+            {message}
+          </div>
+        )}
+
+        {renderContent()}
+      </div>
+
+      <TaskModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSaveTask={handleSaveTask}
+        taskToEdit={taskToEdit}
+      />
     </div>
   );
-}
+};
+
+export default HomePage;
