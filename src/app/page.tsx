@@ -11,8 +11,8 @@ import { Task, NewTask, DashboardData } from '@/types';
 const API_URL = "https://script.google.com/macros/s/AKfycbx_OO5WocNocXbw_Yr8yb6JI-pfezhlbX61gfLsBwSEPqpLqMKJo-d267sGqGXRa_Oh/exec";
 
 // Telegram API settings
-const TELEGRAM_BOT_TOKEN = "8418566183:AAGArbqUQFzQPS2FP5CIxtPVVUN12xmaFTY";
-const TELEGRAM_CHAT_ID = "-4944205160";
+// const TELEGRAM_BOT_TOKEN = "8418566183:AAGArbqUQFzQPS2FP5CIxtPVVUN12xmaFTY";
+// const TELEGRAM_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
 
 const sendTelegramNotification = async (message: string) => {
   const telegramApiUrl = 'http://localhost:3001/api/send-telegram-notification';
@@ -64,16 +64,16 @@ const HomePage: FC = () => {
         if (!response.ok) {
           throw new Error('ไม่สามารถดึงข้อมูลงานจากฐานข้อมูลได้');
         }
-        const data = await response.json();
+        const data: unknown = await response.json();
 
         if (Array.isArray(data)) {
-          setTasks(data);
+          setTasks(data as Task[]);
         } else {
           console.error("Data received from API is not an array:", data);
           throw new Error('ข้อมูลที่ได้รับจาก API ไม่ใช่รูปแบบที่ถูกต้อง');
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError((err as Error).message);
       } finally {
         setIsLoading(false);
       }
@@ -81,25 +81,6 @@ const HomePage: FC = () => {
 
     fetchTasks();
   }, []);
-
-  const checkOverdueTasks = () => {
-    const now = new Date();
-    tasks.forEach(task => {
-      const endDate = new Date(task.endDate);
-      if (task.status !== 'Completed' && endDate < now) {
-        const notificationMessage = `⚠️ งานเกินกำหนดเวลา: "${task.title}" (ผู้รับผิดชอบ: ${task.assignee})`;
-        sendTelegramNotification(notificationMessage);
-      }
-    });
-  };
-
-  useEffect(() => {
-    if (tasks.length > 0) {
-      checkOverdueTasks();
-      const intervalId = setInterval(checkOverdueTasks, 3600000); // Check every hour
-      return () => clearInterval(intervalId);
-    }
-  }, [tasks]);
 
   const showMessage = (msg: string): void => {
     setMessage(msg);
@@ -145,8 +126,8 @@ const HomePage: FC = () => {
         sendTelegramNotification(`✍️ งานใหม่ถูกมอบหมาย: "${savedTask.title}" (ผู้รับผิดชอบ: ${savedTask.assignee}) กำหนดส่ง: ${savedTask.endDate}`);
       }
 
-    } catch (err: any) {
-      showMessage(`เกิดข้อผิดพลาด: ${err.message}`);
+    } catch (err) {
+      showMessage(`เกิดข้อผิดพลาด: ${(err as Error).message}`);
       console.error(err);
     }
   };
@@ -155,7 +136,7 @@ const HomePage: FC = () => {
     const isConfirmed = window.confirm(`คุณแน่ใจหรือไม่ว่างาน "${task.title}" เสร็จสิ้นแล้ว?`);
     if (!isConfirmed) return;
 
-    const completedTask = { ...task, status: 'Completed' as 'Completed' };
+    const completedTask = { ...task, status: 'Completed' as const };
 
     try {
       const response = await fetch(API_URL, {
@@ -176,8 +157,8 @@ const HomePage: FC = () => {
       showMessage(`งาน "${savedTask.title}" เสร็จสิ้นแล้ว!`);
       sendTelegramNotification(`🎉 งานเสร็จสิ้นแล้ว: "${savedTask.title}"`);
 
-    } catch (err: any) {
-      showMessage(`เกิดข้อผิดพลาด: ${err.message}`);
+    } catch (err) {
+      showMessage(`เกิดข้อผิดพลาด: ${(err as Error).message}`);
       console.error(err);
     }
   };
@@ -204,8 +185,8 @@ const HomePage: FC = () => {
       setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
       showMessage('ลบงานสำเร็จ!');
 
-    } catch (err: any) {
-      showMessage(`เกิดข้อผิดพลาด: ${err.message}`);
+    } catch (err) {
+      showMessage(`เกิดข้อผิดพลาด: ${(err as Error).message}`);
       console.error(err);
     }
   };
