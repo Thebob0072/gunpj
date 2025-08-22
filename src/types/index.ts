@@ -10,7 +10,7 @@ export interface Assignee {
 export interface Task {
   id: string;
   title: string;
-  details?: string; // Changed to optional
+  details?: string;
   assignee: string;
   startDate: string;
   endDate: string;
@@ -19,7 +19,6 @@ export interface Task {
   status: 'To Do' | 'In Progress' | 'Completed';
 }
 
-// NewTask now correctly omits only 'id'
 export type NewTask = Omit<Task, 'id'>;
 
 export interface DashboardData {

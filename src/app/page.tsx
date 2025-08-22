@@ -6,14 +6,10 @@ import TaskList from '@/components/TaskList';
 import Dashboard from '@/components/Dashboard';
 import TaskModal from '@/components/TaskModal';
 import { Task, NewTask, DashboardData } from '@/types';
-// --- Import centralized helper ---
-import { formatDateForInput as formatThaiDate } from '@/helpers/utils';
-
 
 // Google Apps Script Web App URL
 const API_URL = "https://script.google.com/macros/s/AKfycbx_OO5WocNocXbw_Yr8yb6JI-pfezhlbX61gfLsBwSEPqpLqMKJo-d267sGqGXRa_Oh/exec";
 
-// ... (The rest of the component is the same as your version)
 const HomePage: FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [view, setView] = useState<'list' | 'dashboard'>('list');
@@ -25,7 +21,7 @@ const HomePage: FC = () => {
 
   useEffect(() => {
     if (!API_URL.startsWith('https')) {
-      setError('กรุณาใส่ URL ของ Google Apps Script Web App ในไฟล์ app/page.tsx');
+      setError('กรุณาใส่ URL ของ Google Apps Script Web App');
       setIsLoading(false);
       return;
     }
@@ -34,7 +30,7 @@ const HomePage: FC = () => {
       try {
         const response = await fetch(API_URL);
         if (!response.ok) {
-          throw new Error('ไม่สามารถดึงข้อมูลงานจากฐานข้อมูลได้');
+          throw new Error('ไม่สามารถดึงข้อมูลงานได้');
         }
         const data: unknown = await response.json();
         setTasks(Array.isArray(data) ? (data as Task[]) : []);
@@ -74,7 +70,7 @@ const HomePage: FC = () => {
         body: JSON.stringify({ action, task: taskData }),
       });
 
-      if (!response.ok) throw new Error(`ไม่สามารถ${isEditing ? 'แก้ไข' : 'เพิ่ม'}งานได้`);
+      if (!response.ok) throw new Error(`ไม่สามารถ ${isEditing ? 'แก้ไข' : 'เพิ่ม'} งานได้`);
       
       const { task: savedTask }: { task: Task } = await response.json();
       
@@ -90,13 +86,11 @@ const HomePage: FC = () => {
 
     } catch (err) {
       showMessage(`เกิดข้อผิดพลาด: ${(err as Error).message}`);
-      console.error(err);
     }
   };
 
   const handleCompleteTask = async (task: Task) => {
-    const isConfirmed = window.confirm(`คุณแน่ใจหรือไม่ว่างาน "${task.title}" เสร็จสิ้นแล้ว?`);
-    if (!isConfirmed) return;
+    if (!window.confirm(`คุณแน่ใจหรือไม่ว่างาน "${task.title}" เสร็จสิ้นแล้ว?`)) return;
 
     const completedTask = { ...task, status: 'Completed' as const };
 
@@ -117,13 +111,11 @@ const HomePage: FC = () => {
 
     } catch (err) {
       showMessage(`เกิดข้อผิดพลาด: ${(err as Error).message}`);
-      console.error(err);
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    const isConfirmed = window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?');
-    if (!isConfirmed) return;
+    if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?')) return;
 
     try {
       const response = await fetch(API_URL, {
@@ -140,7 +132,6 @@ const HomePage: FC = () => {
 
     } catch (err) {
       showMessage(`เกิดข้อผิดพลาด: ${(err as Error).message}`);
-      console.error(err);
     }
   };
 
@@ -149,19 +140,16 @@ const HomePage: FC = () => {
     if (!isConfirmed) return;
 
     try {
-      const response = await fetch(API_URL, {
+      await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'sendNotification', task }),
       });
-
-      if (!response.ok) throw new Error('ไม่สามารถส่งการแจ้งเตือนได้');
       
       if(!customTitle) showMessage(`ส่งข้อความแจ้งเตือนสำหรับงาน "${task.title}" แล้ว!`);
 
     } catch (err) {
       showMessage(`เกิดข้อผิดพลาด: ${(err as Error).message}`);
-      console.error(err);
     }
   };
 
@@ -187,13 +175,10 @@ const HomePage: FC = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      return <div className="text-center p-12 text-neutral-500">กำลังโหลดข้อมูลจาก Google Sheet...</div>;
+      return <div className="text-center p-12 text-neutral-500">กำลังโหลดข้อมูล...</div>;
     }
     if (error) {
       return <div className="text-center p-12 text-red-600 bg-red-50 rounded-lg">เกิดข้อผิดพลาด: {error}</div>;
-    }
-    if (view === 'list' && tasks.length === 0) {
-        return <div className="text-center text-neutral-500 p-8 border-2 border-dashed border-neutral-300 rounded-xl">ไม่พบงานค้าง</div>;
     }
     if (view === 'list') {
       return <TaskList tasks={tasks} onEdit={handleOpenModalForEdit} onDelete={handleDeleteTask} onComplete={handleCompleteTask} onSendNotification={handleSendNotification} />;

@@ -1,4 +1,4 @@
-// src/helpers/utils.ts
+// helpers/utils.ts
 
 export const formatDateForInput = (dateString: string | null): string => {
   if (!dateString) return '';
