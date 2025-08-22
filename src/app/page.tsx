@@ -11,8 +11,8 @@ import { Task, NewTask, DashboardData } from '@/types';
 const API_URL = "https://script.google.com/macros/s/AKfycbx_OO5WocNocXbw_Yr8yb6JI-pfezhlbX61gfLsBwSEPqpLqMKJo-d267sGqGXRa_Oh/exec";
 
 // Telegram API settings
-// const TELEGRAM_BOT_TOKEN = "8418566183:AAGArbqUQFzQPS2FP5CIxtPVVUN12xmaFTY";
-// const TELEGRAM_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
+const TELEGRAM_BOT_TOKEN = "8418566183:AAGArbqUQFzQPS2FP5CIxtPVVUN12xmaFTY";
+const TELEGRAM_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
 
 const sendTelegramNotification = async (message: string) => {
   const telegramApiUrl = 'http://localhost:3001/api/send-telegram-notification';
@@ -69,8 +69,8 @@ const HomePage: FC = () => {
         if (Array.isArray(data)) {
           setTasks(data as Task[]);
         } else {
-          console.error("Data received from API is not an array:", data);
-          throw new Error('ข้อมูลที่ได้รับจาก API ไม่ใช่รูปแบบที่ถูกต้อง');
+          // If the API returns an empty object or null, treat it as an empty array.
+          setTasks([]);
         }
       } catch (err) {
         setError((err as Error).message);
@@ -228,12 +228,15 @@ const HomePage: FC = () => {
     if (error) {
       return <div className="text-center p-12 text-red-600 bg-red-50 rounded-lg">เกิดข้อผิดพลาด: {error}</div>;
     }
+    if (view === 'list' && tasks.length === 0) {
+        return <div className="text-center text-neutral-500 p-8 border-2 border-dashed border-neutral-300 rounded-xl">ไม่พบงานค้าง</div>;
+    }
     if (view === 'list') {
       return <TaskList tasks={tasks} onEdit={handleOpenModalForEdit} onDelete={handleDeleteTask} onComplete={handleCompleteTask} onSendNotification={handleSendNotification} />;
     }
     return <Dashboard tasks={tasks} dashboardData={mockDashboardData} />;
   }
-
+  
   return (
     <div className="min-h-screen bg-neutral-100 w-full py-10 flex justify-center">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6">
