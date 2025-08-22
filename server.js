@@ -12,7 +12,7 @@ const WEBHOOK_URL = "https://7c8aa0e7715b.ngrok-free.app/webhook"; // Corrected 
 
 // Use cors to allow requests from your React app
 app.use(cors({
-  origin: 'http://localhost:3000' // Replace with your app's origin
+  origin: 'https://gunpj-omli-three.vercel.app/' // Replace with your app's origin
 }));
 
 app.use(express.json());
