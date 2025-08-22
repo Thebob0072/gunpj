@@ -1873,7 +1873,7 @@ dot-prop@^7.2.0:
 
 dotenv@^17.2.1:
   version "17.2.1"
-  resolved "https://registry.npmjs.org/dotenv/-/dotenv-17.2.1.tgz"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-17.2.1.tgz#6f32e10faf014883515538dc922a0fb8765d9b32"
   integrity sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==
 
 dunder-proto@^1.0.0, dunder-proto@^1.0.1:

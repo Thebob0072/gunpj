@@ -3,19 +3,41 @@
 import { useState, useEffect, FC, FormEvent, useRef } from 'react';
 import { Send, UserCog, X } from 'lucide-react';
 import Calendar from 'react-calendar';
+
+// --- CSS Imports ---
 import 'react-calendar/dist/Calendar.css';
 import './Calendar.css'; 
 
 import { NewTask, Task, Assignee } from '@/types';
 import AssigneeModal from './AssigneeModal';
 import { FcCalendar, FcClock } from 'react-icons/fc'; 
-import { formatDateForInput, generateTimeOptions } from '@/helpers/utils';
 
 const initialAssignees: Assignee[] = [
     { id: '1', name: 'ออดี้', position: 'Developer', role: 'Frontend' },
     { id: '2', name: 'จิรภัทร', position: 'Designer', role: 'UI/UX' },
     { id: '3', name: 'พรวิภา', position: 'Project Manager', role: 'Team Lead' },
 ];
+
+const formatDateForInput = (dateString: string | null) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear() + 543;
+  return `${day}/${month}/${year}`;
+};
+
+const generateTimeOptions = (interval = 30) => {
+  const times = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += interval) {
+      const formattedHour = hour.toString().padStart(2, '0');
+      const formattedMinute = minute.toString().padStart(2, '0');
+      times.push(`${formattedHour}:${formattedMinute}`);
+    }
+  }
+  return times;
+};
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -33,13 +55,12 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [showDetailsInput, setShowDetailsInput] = useState(false);
+
   const timeOptions = generateTimeOptions();
-  
   const startDateRef = useRef<HTMLDivElement>(null);
   const endDateRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<HTMLDivElement>(null);
   const endTimeRef = useRef<HTMLDivElement>(null);
-  
   const [startDateCalendarStyle, setStartDateCalendarStyle] = useState({});
   const [endDateCalendarStyle, setEndDateCalendarStyle] = useState({});
   const [yearType, setYearType] = useState<string | null>(null);
@@ -85,14 +106,29 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
   useEffect(() => {
     if (taskToEdit) {
       setFormData(taskToEdit);
-      setShowDetailsInput(!!taskToEdit.details);
+      if (taskToEdit.details) {
+        setShowDetailsInput(true);
+      } else {
+        setShowDetailsInput(false);
+      }
     } else {
       const today = new Date();
       const year = today.getFullYear();
       const month = (today.getMonth() + 1).toString().padStart(2, '0');
       const day = today.getDate().toString().padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}`;
-      setFormData({ title: '', details: '', assignee: '', startDate: formattedDate, endDate: formattedDate, status: 'To Do', startTime: '09:00', endTime: '17:00' });
+      // --- START: อัปเดตค่าเริ่มต้น ---
+      setFormData({ 
+        title: '', 
+        details: '', 
+        assignee: '', 
+        startDate: formattedDate, 
+        endDate: formattedDate, // ตั้งให้ endDate เป็นวันเดียวกับ startDate
+        status: 'To Do', 
+        startTime: '09:00', 
+        endTime: '17:00' 
+      });
+      // --- END: อัปเดตค่าเริ่มต้น ---
       setShowDetailsInput(false);
     }
     setShowStartDatePicker(false);
@@ -106,17 +142,20 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  // --- START: อัปเดต Logic การเลือกวันที่ ---
   const handleDateChange = (date: Date, name: 'startDate' | 'endDate') => {
     const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
     
     if (name === 'startDate') {
+      // เมื่อเลือกวันที่เริ่มต้น, ตั้งวันที่สิ้นสุดให้เป็นวันเดียวกันโดยอัตโนมัติ
       setFormData(prev => ({ ...prev, startDate: formattedDate, endDate: formattedDate }));
       setShowStartDatePicker(false);
-    } else {
+    } else { // name === 'endDate'
       setFormData(prev => ({ ...prev, endDate: formattedDate }));
       setShowEndDatePicker(false);
     }
   };
+  // --- END: อัปเดต Logic การเลือกวันที่ ---
 
   const handleTimeSelect = (time: string, name: 'startTime' | 'endTime') => {
     if (name === 'startTime') {
@@ -175,10 +214,22 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                     className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 text-sm"
                     rows={3}
                   />
-                  <button type="button" onClick={handleHideDetails} className="text-sm text-gray-500 hover:text-gray-700 transition-colors">- ซ่อนรายละเอียด</button>
+                  <button
+                    type="button"
+                    onClick={handleHideDetails}
+                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    - ซ่อนรายละเอียด
+                  </button>
                 </div>
               ) : (
-                <button type="button" onClick={() => setShowDetailsInput(true)} className="text-sm text-amber-600 hover:text-amber-700 transition-colors">+ เพิ่มรายละเอียด</button>
+                <button
+                  type="button"
+                  onClick={() => setShowDetailsInput(true)}
+                  className="text-sm text-amber-600 hover:text-amber-700 transition-colors"
+                >
+                  + เพิ่มรายละเอียด
+                </button>
               )}
             </div>
 
@@ -209,7 +260,11 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                   <FcClock size={24} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   {showStartTimePicker && (
                     <div className="time-dropdown">
-                      {timeOptions.map(time => (<div key={time} className="time-dropdown-item" onClick={() => handleTimeSelect(time, 'startTime')}>{time}</div>))}
+                      {timeOptions.map(time => (
+                        <div key={time} className="time-dropdown-item" onClick={() => handleTimeSelect(time, 'startTime')}>
+                          {time}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -234,18 +289,24 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                       <div className="time-dropdown">
                         {timeOptions
                             .filter(time => !(formData.startDate === formData.endDate && time < formData.startTime))
-                            .map(time => (<div key={time} className="time-dropdown-item" onClick={() => handleTimeSelect(time, 'endTime')}>{time}</div>))}
+                            .map(time => (
+                          <div key={time} className="time-dropdown-item" onClick={() => handleTimeSelect(time, 'endTime')}>
+                            {time}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
               </div>
             </div>
 
-            <select name="status" value={(formData as Task).status} onChange={handleChange} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50">
-              <option value="To Do">ยังไม่เริ่ม</option>
-              <option value="In Progress">กำลังดำเนินงาน</option>
-              <option value="Completed">เสร็จสิ้น</option>
-            </select>
+            {isEditing && (
+              <select name="status" value={(formData as Task).status} onChange={handleChange} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50">
+                <option value="To Do">ยังไม่เริ่ม</option>
+                <option value="In Progress">กำลังดำเนินงาน</option>
+                <option value="Completed">เสร็จสิ้น</option>
+              </select>
+            )}
             <button type="submit" className="w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition-colors duration-200">
               <Send size={20} className="inline-block mr-2" />
               <span>{isEditing ? 'บันทึกการเปลี่ยนแปลง' : 'มอบหมายงาน'}</span>
