@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 214, 219, 220;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+body {
+  font-family: sarabun !important;
+}
+
+button:focus {
+  outline: none;
+}
+
+.mobile-menu > div {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.main-menu-scrollbar::-webkit-scrollbar {
+  width: 0;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #e7e6e6;
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #b8d1eb;
+  border-radius: 100px;
+}
+
+.main-menu > li > a,
+.main-menu > li > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 4px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.main-menu > li > a > span,
+.main-menu > li > div > span {
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.main-container {
+  color: black;
+  padding: 20px 40px 30px 40px;
+  --tw-bg-opacity: 1;
+  background-color: var(--background-main);
+  min-height: calc(100vh - 100px);
+}
+
+.submenu-shadow {
+  box-shadow: rgba(0, 0, 0, 0.15) -5px 0px 8px -6px inset;
+}
+
+.submenu-h {
+  font-size: 20px;
+  color: #505651;
+  padding: 30px 20px 20px 20px;
+}
+
+.submenu > li > a {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px 10px 20px;
+  color: #505651;
+}
+
+.submenu > li > a:hover,
+.accordion-submenu li > a:hover {
+  background-color: #e6eae7;
+}
+
+.accordion-submenu button {
+  padding: 10px 0 10px 0;
+}
+
+.accordion-submenu section > div {
+  padding: 0;
+}
+
+.accordion-submenu li {
+  overflow: hidden;
+}
+
+.accordion-submenu li > a {
+  display: flex;
+  padding: 10px 20px 10px 40px;
+  color: #505651;
+}
+
+.bg-divider {
+  height: 0.5px;
+}
+
+.ln-bg {
+  background: var(--primary);
+  background: linear-gradient(0deg, var(--sidebar) 20%, var(--primary) 74%);
+  min-height: 100vh;
+}
+
+.border-thin {
+  border-width: 1px;
+}
+
+.bd-blur-1 {
+  backdrop-filter: blur(1px);
+}
+
+.bgColor {
+  background-color: #21b899;
+}
+
+.text-primary-green {
+  color: #21b899;
+}
+
+/* ซ่อน Arrow ของ Input Type Number */
+.hide-arrow::-webkit-outer-spin-button,
+.hide-arrow::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.hide-arrow[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.document-header {
+  @apply sticky top-0 w-[98%] ml-4 bg-background px-8 py-5 pt-5 pb-2 z-40;
+}
