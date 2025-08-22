@@ -1,24 +1,28 @@
 const express = require('express');
 const cors = require('cors');
-const net = require('net');
 
 const app = express();
-const port = 3001; // Use a different port from your React app to avoid conflicts
+const port = process.env.PORT || 3001; // Use port from environment variable or default to 3001
 
-// IMPORTANT: Replace with your actual Telegram credentials
-const TELEGRAM_BOT_TOKEN = "8418566183:AAGArbqUQFzQPS2FP5CIxtPVVUN12xmaFTY";
-const TELEGRAM_CHAT_ID = "-4944205160"; // Updated with the correct Chat ID from your getUpdates log
-const WEBHOOK_URL = "https://7c8aa0e7715b.ngrok-free.app/webhook"; // Corrected webhook URL
+// IMPORTANT: Replace with your actual Telegram credentials as Environment Variables
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const WEBHOOK_URL = process.env.WEBHOOK_URL; // Replace with your actual deployed URL
 
 // Use cors to allow requests from your React app
 app.use(cors({
-  origin: 'https://gunpj-omli-three.vercel.app/' // Replace with your app's origin
+  origin: process.env.FRONTEND_URL // Replace with your actual frontend URL (Vercel)
 }));
 
 app.use(express.json());
 
 // Function to set the webhook URL in Telegram
 const setTelegramWebhook = async () => {
+  if (!TELEGRAM_BOT_TOKEN || !WEBHOOK_URL) {
+    console.error('TELEGRAM_BOT_TOKEN or WEBHOOK_URL is not set. Skipping webhook setup.');
+    return;
+  }
+
   const telegramSetWebhookUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=${WEBHOOK_URL}`;
   
   try {
@@ -93,29 +97,7 @@ app.post('/webhook', (req, res) => {
   res.sendStatus(200);
 });
 
-// Function to check if a port is in use
-const checkPort = (port) => {
-  return new Promise((resolve, reject) => {
-    const tester = net.createServer()
-      .once('error', (err) => (err.code === 'EADDRINUSE' ? resolve(true) : reject(err)))
-      .once('listening', () => {
-        tester.once('close', () => resolve(false)).close();
-      })
-      .listen(port);
-  });
-};
-
-// Start the server only if the port is not in use
-checkPort(port).then(isUsed => {
-  if (isUsed) {
-    console.error(`Port ${port} is already in use. Please close the other application or choose a different port.`);
-  } else {
-    const server = app.listen(port, () => {
-      console.log(`Proxy server listening at http://localhost:${port}`);
-      // Set the webhook when the server starts
-      setTelegramWebhook();
-    }).on('error', (err) => {
-      console.error('Failed to start proxy server:', err);
-    });
-  }
+// Start the server
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
