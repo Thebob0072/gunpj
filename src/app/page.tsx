@@ -236,7 +236,28 @@ const HomePage: FC = () => {
     }
     return <Dashboard tasks={tasks} dashboardData={mockDashboardData} />;
   }
+
+  const calculateTimeLeft = (endDate: string) => {
+    const now = new Date();
+    const end = new Date(endDate);
+    const timeLeft = end.getTime() - now.getTime();
   
+    if (timeLeft <= 0) {
+      return 'เกินกำหนดเวลา';
+    }
+  
+    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
+  
+    let result = '';
+    if (days > 0) result += `${days} วัน `;
+    if (hours > 0) result += `${hours} ชั่วโมง `;
+    if (minutes > 0) result += `${minutes} นาที`;
+  
+    return result.trim() || 'เหลือไม่ถึง 1 นาที';
+  };
+
   return (
     <div className="min-h-screen bg-neutral-100 w-full py-10 flex justify-center">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6">
