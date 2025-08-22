@@ -15,7 +15,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx_OO5WocNocXbw_Yr8yb6J
 // const TELEGRAM_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
 
 const sendTelegramNotification = async (message: string) => {
-  const telegramApiUrl = 'http://localhost:3001/api/send-telegram-notification';
+  const telegramApiUrl = 'https://gunpj.onrender.com/api/send-telegram-notification';
   
   try {
     const response = await fetch(telegramApiUrl, {
