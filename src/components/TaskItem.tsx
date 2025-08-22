@@ -2,7 +2,10 @@
 import { FC, useEffect, useState } from 'react';
 import { User, Calendar, Edit, Trash2, CheckCircle, MessageSquareWarning } from 'lucide-react';
 import { Task } from '@/types';
+// --- Import centralized helper ---
+import { formatDateForInput as formatThaiDate } from '@/helpers/utils';
 
+// ... (The rest of the component is the same as your version)
 interface TaskItemProps {
   task: Task;
   onEdit: (task: Task) => void;
@@ -10,17 +13,6 @@ interface TaskItemProps {
   onComplete: (task: Task) => void;
   onSendNotification: (task: Task) => void;
 }
-
-// --- 1. สร้างฟังก์ชันสำหรับจัดรูปแบบวันที่เป็นแบบไทย ---
-const formatThaiDate = (dateString: string) => {
-  if (!dateString) return 'ไม่ได้ระบุ';
-  const date = new Date(dateString);
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear() + 543; // แปลงเป็นปี พ.ศ.
-  return `${day}/${month}/${year}`;
-};
-
 
 const renderTaskStatus = (status: Task['status']) => {
   let color = '', text = '';
@@ -34,7 +26,6 @@ const renderTaskStatus = (status: Task['status']) => {
 };
 
 const calculateTimeLeft = (endDate: string, endTime: string) => {
-  // รวมวันที่และเวลาเข้าด้วยกันเพื่อการคำนวณที่แม่นยำ
   const endDateTime = new Date(`${endDate}T${endTime}`);
   const now = new Date();
   const timeLeft = endDateTime.getTime() - now.getTime();
@@ -64,24 +55,27 @@ const TaskItem: FC<TaskItemProps> = ({ task, onEdit, onDelete, onComplete, onSen
 
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(task.endDate, task.endTime));
-    }, 60000); // อัปเดตทุกนาที
+    }, 60000);
 
     return () => clearInterval(timer);
   }, [task.endDate, task.endTime, task.status]);
 
   return (
     <div className="bg-white p-5 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center">
-      <div>
+      <div className='flex-1'>
         <h3 className="text-lg font-bold text-neutral-900">{task.title}</h3>
-        <div className="flex items-center text-neutral-600 mt-1 space-x-2">
-          <User size={16} className="text-neutral-500" /><span>{task.assignee}</span>
-        </div>
-        {/* --- 2. ปรับปรุงการแสดงผลวันที่และเวลา --- */}
-        <div className="flex items-center text-sm text-neutral-500 mt-2 space-x-2">
+        {task.details && <p className='text-sm text-neutral-500 mt-1'>{task.details}</p>}
+        <div className="flex items-center text-neutral-600 mt-2 space-x-4">
+          <div className='flex items-center space-x-2'>
+            <User size={16} className="text-neutral-500" />
+            <span>{task.assignee}</span>
+          </div>
+          <div className='flex items-center text-sm text-neutral-500 space-x-2'>
             <Calendar size={16}/>
             <span>
-                {formatThaiDate(task.startDate)} ({task.startTime} น.) - {formatThaiDate(task.endDate)} ({task.endTime} น.)
+                {formatThaiDate(task.startDate)} ({task.startTime}) - {formatThaiDate(task.endDate)} ({task.endTime})
             </span>
+          </div>
         </div>
         {(task.status !== 'Completed') && (
           <div className={`mt-2 text-sm font-semibold ${isOverdue ? 'text-red-600' : 'text-amber-600'}`}>
@@ -91,7 +85,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, onEdit, onDelete, onComplete, onSen
           </div>
         )}
       </div>
-      <div className="flex items-center space-x-3 mt-3 sm:mt-0">
+      <div className="flex items-center space-x-1 mt-3 sm:mt-0 sm:pl-4">
         {renderTaskStatus(task.status)}
         {task.status !== 'Completed' && (
           <button onClick={() => onComplete(task)} className="p-2 rounded-full text-green-500 hover:bg-neutral-100 transition-colors" title="ทำเครื่องหมายว่าเสร็จสิ้น">
