@@ -8,11 +8,10 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './Calendar.css'; 
 
-import { NewTask, Task, Assignee } from '@/types'; // Import Assignee type
+import { NewTask, Task, Assignee } from '@/types';
 import AssigneeModal from './AssigneeModal';
 import { FcCalendar, FcClock } from 'react-icons/fc'; 
 
-// Updated initial assignees to be objects
 const initialAssignees: Assignee[] = [
     { id: '1', name: 'ออดี้', position: 'Developer', role: 'Frontend' },
     { id: '2', name: 'จิรภัทร', position: 'Designer', role: 'UI/UX' },
@@ -20,7 +19,6 @@ const initialAssignees: Assignee[] = [
 ];
 
 const formatDateForInput = (dateString: string | null) => {
-  // ... function remains the same
   if (!dateString) return '';
   const date = new Date(dateString);
   const day = date.getDate().toString().padStart(2, '0');
@@ -30,7 +28,6 @@ const formatDateForInput = (dateString: string | null) => {
 };
 
 const generateTimeOptions = (interval = 30) => {
-  // ... function remains the same
   const times = [];
   for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += interval) {
@@ -51,8 +48,7 @@ interface TaskModalProps {
 
 const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit }) => {
   const [formData, setFormData] = useState<NewTask | Task>({ title: '', details: '', assignee: '', startDate: '', endDate: '', status: 'To Do', startTime: '09:00', endTime: '17:00' });
-  const [assignees, setAssignees] = useState(initialAssignees); // State is now Assignee[]
-  // ... all other states and functions remain the same
+  const [assignees, setAssignees] = useState(initialAssignees);
   const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -120,7 +116,19 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
       const year = today.getFullYear();
       const month = (today.getMonth() + 1).toString().padStart(2, '0');
       const day = today.getDate().toString().padStart(2, '0');
-      setFormData({ title: '', details: '', assignee: '', startDate: `${year}-${month}-${day}`, endDate: '', status: 'To Do', startTime: '09:00', endTime: '17:00' });
+      const formattedDate = `${year}-${month}-${day}`;
+      // --- START: อัปเดตค่าเริ่มต้น ---
+      setFormData({ 
+        title: '', 
+        details: '', 
+        assignee: '', 
+        startDate: formattedDate, 
+        endDate: formattedDate, // ตั้งให้ endDate เป็นวันเดียวกับ startDate
+        status: 'To Do', 
+        startTime: '09:00', 
+        endTime: '17:00' 
+      });
+      // --- END: อัปเดตค่าเริ่มต้น ---
       setShowDetailsInput(false);
     }
     setShowStartDatePicker(false);
@@ -134,20 +142,20 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  // --- START: อัปเดต Logic การเลือกวันที่ ---
   const handleDateChange = (date: Date, name: 'startDate' | 'endDate') => {
     const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    
     if (name === 'startDate') {
-      if (formData.endDate && date > new Date(formData.endDate)) {
-        setFormData(prev => ({ ...prev, startDate: formattedDate, endDate: '' }));
-      } else {
-        setFormData(prev => ({ ...prev, startDate: formattedDate }));
-      }
+      // เมื่อเลือกวันที่เริ่มต้น, ตั้งวันที่สิ้นสุดให้เป็นวันเดียวกันโดยอัตโนมัติ
+      setFormData(prev => ({ ...prev, startDate: formattedDate, endDate: formattedDate }));
       setShowStartDatePicker(false);
-    } else {
+    } else { // name === 'endDate'
       setFormData(prev => ({ ...prev, endDate: formattedDate }));
       setShowEndDatePicker(false);
     }
   };
+  // --- END: อัปเดต Logic การเลือกวันที่ ---
 
   const handleTimeSelect = (time: string, name: 'startTime' | 'endTime') => {
     if (name === 'startTime') {
@@ -228,7 +236,6 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
             <div className="flex items-center space-x-2">
               <select name="assignee" value={formData.assignee} onChange={handleAssigneeChange} required className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50">
                 <option value="" disabled>เลือกผู้รับผิดชอบ</option>
-                {/* Updated dropdown mapping */}
                 {assignees.map(assignee => (<option key={assignee.id} value={assignee.name}>{assignee.name}</option>))}
                 <option value="add-new">-- เพิ่มคนใหม่ --</option>
               </select>

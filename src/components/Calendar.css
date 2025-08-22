@@ -52,8 +52,9 @@
 .time-dropdown-item {
   padding: 0.5rem 1rem;
   cursor: pointer;
+  color: #262626; /* Added: Sets text to dark gray */
 }
 
 .time-dropdown-item:hover {
-  background-color: #f3f4f6; /* bg-neutral-100 */
+  background-color: #f3f4f6;
 }
