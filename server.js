@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-const port = process.env.PORT || 3001; // Use port from environment variable or default to 3001
+const port = parseInt(process.env.PORT) || 3001; // Use parseInt() to convert to a number
 
 // IMPORTANT: Replace with your actual Telegram credentials as Environment Variables
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
