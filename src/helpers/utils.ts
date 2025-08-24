@@ -63,7 +63,7 @@ export const getTaskStatusInfo = (task: Task): { text: string; state: string } =
     const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
     const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
 
-    let parts = [];
+    const parts = [];
     if (days > 0) parts.push(`${days} วัน`);
     if (hours > 0) parts.push(`${hours} ชั่วโมง`);
     if (minutes > 0 && days === 0) parts.push(`${minutes} นาที`);
