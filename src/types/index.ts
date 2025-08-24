@@ -1,5 +1,3 @@
-// types/index.ts
-
 export interface Assignee {
   id: string;
   name: string;
@@ -16,10 +14,10 @@ export interface Task {
   endDate: string;
   startTime: string;
   endTime: string;
-  status: 'To Do' | 'In Progress' | 'Completed';
+  status: 'To Do' | 'In Progress' | 'Completed' | 'Edited';
 }
 
-export type NewTask = Omit<Task, 'id'>;
+export type NewTask = Omit<Task, 'id' | 'status'>;
 
 export interface DashboardData {
   name: string;

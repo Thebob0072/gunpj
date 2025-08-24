@@ -12,11 +12,11 @@ import { NewTask, Task, Assignee } from '@/types';
 import AssigneeModal from './AssigneeModal';
 import { FcCalendar, FcClock } from 'react-icons/fc'; 
 
-const initialAssignees: Assignee[] = [
-    { id: '1', name: 'ออดี้', position: 'Developer', role: 'Frontend' },
-    { id: '2', name: 'จิรภัทร', position: 'Designer', role: 'UI/UX' },
-    { id: '3', name: 'พรวิภา', position: 'Project Manager', role: 'Team Lead' },
-];
+// const initialAssignees: Assignee[] = [
+//     { id: '1', name: 'ออดี้', position: 'Developer', role: 'Frontend' },
+//     { id: '2', name: 'จิรภัทร', position: 'Designer', role: 'UI/UX' },
+//     { id: '3', name: 'พรวิภา', position: 'Project Manager', role: 'Team Lead' },
+// ];
 
 const formatDateForInput = (dateString: string | null) => {
   if (!dateString) return '';
@@ -44,11 +44,12 @@ interface TaskModalProps {
   onClose: () => void;
   onSaveTask: (task: NewTask | Task) => void;
   taskToEdit: Task | null;
+  assignees: Assignee[];
+  onUpdateAssignees: (updatedAssignees: Assignee[]) => void; // <--- เพิ่มบรรทัดนี้
 }
 
-const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit }) => {
+const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit,assignees ,onUpdateAssignees}) => {
   const [formData, setFormData] = useState<NewTask | Task>({ title: '', details: '', assignee: '', startDate: '', endDate: '', status: 'To Do', startTime: '09:00', endTime: '17:00' });
-  const [assignees, setAssignees] = useState(initialAssignees);
   const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -247,7 +248,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                 <div className="relative" ref={startDateRef}>
                   <label className="text-sm font-medium text-neutral-600">วันที่เริ่มต้น</label>
                   <input type="text" value={formatDateForInput(formData.startDate)} onClick={() => handleToggle('startDate')} placeholder="เลือกวันที่" readOnly className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer" />
-                  <FcCalendar size={24} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <FcCalendar size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                   {showStartDatePicker && (
                     <div style={{ position: 'absolute', zIndex: 11, ...startDateCalendarStyle }}>
                       <Calendar className={'custom-calendar'} locale="th" onChange={(value) => { if (value instanceof Date) handleDateChange(value, 'startDate'); }} value={formData.startDate ? new Date(formData.startDate) : null} minDate={new Date()} />
@@ -257,7 +258,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                 <div className="relative" ref={startTimeRef}>
                   <label className="text-sm font-medium text-neutral-600">เวลาเริ่มต้น</label>
                   <input type="text" value={formData.startTime} onClick={() => handleToggle('startTime')} readOnly className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer"/>
-                  <FcClock size={24} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <FcClock size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                   {showStartTimePicker && (
                     <div className="time-dropdown">
                       {timeOptions.map(time => (
@@ -274,7 +275,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                  <div className="relative" ref={endDateRef}>
                     <label className="text-sm font-medium text-neutral-600">วันที่สิ้นสุด</label>
                     <input type="text" value={formatDateForInput(formData.endDate)} onClick={() => handleToggle('endDate')} placeholder="เลือกวันที่" readOnly disabled={!formData.startDate} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer disabled:bg-neutral-200" />
-                    <FcCalendar size={24} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <FcCalendar size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                     {showEndDatePicker && (
                       <div style={{ position: 'absolute', zIndex: 11, ...endDateCalendarStyle }}>
                         <Calendar className={'custom-calendar'} locale="th" formatMonthYear={(locale, date) => `${date.toLocaleString(locale, { month: 'long' })} ${date.getFullYear() + (yearType === 'en' ? 0 : 543)}`} formatYear={(locale, date) => (date.getFullYear() + (yearType === 'en' ? 0 : 543)).toString()} onChange={(value) => { if (value instanceof Date) handleDateChange(value, 'endDate'); }} value={formData.endDate ? new Date(formData.endDate) : null} minDate={formData.startDate ? new Date(formData.startDate) : undefined} />
@@ -284,7 +285,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                  <div className="relative" ref={endTimeRef}>
                    <label className="text-sm font-medium text-neutral-600">เวลาสิ้นสุด</label>
                     <input type="text" value={formData.endTime} onClick={() => handleToggle('endTime')} readOnly disabled={!formData.startDate} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer disabled:bg-neutral-200"/>
-                    <FcClock size={24} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <FcClock size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                     {showEndTimePicker && (
                       <div className="time-dropdown">
                         {timeOptions
@@ -314,7 +315,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
           </form>
         </div>
       </div>
-      <AssigneeModal isOpen={isAssigneeModalOpen} onClose={() => setIsAssigneeModalOpen(false)} assignees={assignees} onUpdateAssignees={setAssignees} />
+      <AssigneeModal isOpen={isAssigneeModalOpen} onClose={() => setIsAssigneeModalOpen(false)} assignees={assignees} onUpdateAssignees={onUpdateAssignees} />
     </>
   );
 };

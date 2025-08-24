@@ -1,9 +1,14 @@
+
+
 'use client';
 
 import { useState, FC } from 'react';
 import { UserPlus, UserMinus, UserCog, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { Assignee } from '@/types'; 
+
+// Get the API URL from environment variables
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface AssigneeModalProps {
   isOpen: boolean;
@@ -22,21 +27,40 @@ const AssigneeModal: FC<AssigneeModalProps> = ({ isOpen, onClose, assignees, onU
     setNewAssignee(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddAssignee = () => {
-    if (newAssignee.name && !assignees.some(a => a.name === newAssignee.name)) {
-      const newEntry: Assignee = {
-        id: Date.now().toString(), 
-        ...newAssignee,
-      };
-      onUpdateAssignees([...assignees, newEntry]);
+  // --- FIX: Add async and fetch call ---
+  const handleAddAssignee = async () => {
+    if (!newAssignee.name) {
+      Swal.fire('Error', 'Assignee name is required', 'error');
+      return;
+    }
+    try {
+      const response = await fetch(API_URL!, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'createAssignee', assignee: newAssignee }),
+      });
+      if (!response.ok) throw new Error('Failed to save new assignee');
+      
+      const { assignee: savedAssignee } = await response.json();
+      onUpdateAssignees([...assignees, savedAssignee]); // Update parent state
       setNewAssignee({ name: '', position: '', role: '' }); 
-    } else {
-        Swal.fire('เกิดข้อผิดพลาด', 'ชื่อผู้รับผิดชอบห้ามว่างหรือซ้ำกัน', 'error');
+    } catch (error) {
+      Swal.fire('Error', (error as Error).message, 'error');
     }
   };
 
-  const handleDeleteAssignee = (id: string) => {
-    onUpdateAssignees(assignees.filter(a => a.id !== id));
+  // --- FIX: Add async and fetch call ---
+  const handleDeleteAssignee = async (id: string) => {
+    try {
+      const response = await fetch(API_URL!, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'deleteAssignee', id: id }),
+      });
+      if (!response.ok) throw new Error('Failed to delete assignee');
+
+      onUpdateAssignees(assignees.filter(a => a.id !== id));
+    } catch (error) {
+      Swal.fire('Error', (error as Error).message, 'error');
+    }
   };
 
   const handleStartEdit = (assignee: Assignee) => {
@@ -50,23 +74,25 @@ const AssigneeModal: FC<AssigneeModalProps> = ({ isOpen, onClose, assignees, onU
     setEditedAssignee(prev => prev ? { ...prev, [name]: value } : null);
   };
 
-  const handleSaveEdit = () => {
-    if (!editedAssignee || !isEditing) return;
-
-    const isDuplicate = assignees.some(a => a.name === editedAssignee.name && a.id !== isEditing);
-
-    if (editedAssignee.name && !isDuplicate) {
-      const updatedList = assignees.map(a => (a.id === isEditing ? editedAssignee : a));
-      onUpdateAssignees(updatedList);
+  // --- FIX: Add async and fetch call ---
+  const handleSaveEdit = async () => {
+    if (!editedAssignee) return;
+    try {
+      const response = await fetch(API_URL!, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'updateAssignee', assignee: editedAssignee }),
+      });
+      if (!response.ok) throw new Error('Failed to update assignee');
+      
+      onUpdateAssignees(assignees.map(a => (a.id === editedAssignee.id ? editedAssignee : a)));
       setIsEditing(null);
       setEditedAssignee(null);
-    } else {
-      Swal.fire('เกิดข้อผิดพลาด', 'ชื่อผู้รับผิดชอบห้ามว่างหรือซ้ำกัน', 'error');
+    } catch (error) {
+      Swal.fire('Error', (error as Error).message, 'error');
     }
   };
 
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">

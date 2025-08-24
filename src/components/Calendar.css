@@ -5,6 +5,7 @@
   background-color: #fff;
   user-select: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* เงา */
+  color: black;
 }
 
 .react-calendar__tile {
@@ -52,9 +53,8 @@
 .time-dropdown-item {
   padding: 0.5rem 1rem;
   cursor: pointer;
-  color: #262626; /* Added: Sets text to dark gray */
 }
 
 .time-dropdown-item:hover {
-  background-color: #f3f4f6;
+  background-color: #f3f4f6; /* bg-neutral-100 */
 }

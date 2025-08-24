@@ -12,7 +12,7 @@ interface TaskListProps {
 
 const TaskList: FC<TaskListProps> = ({ tasks, onEdit, onDelete, onComplete, onSendNotification }) => (
   <div className="space-y-4">
-    <h2 className="text-2xl font-semibold text-neutral-700">รายการงาน</h2>
+    <h2 className="text-2xl font-semibold text-neutral-700">รายการงานที่ต้องทำ</h2>
     {tasks.length > 0 ? (
       tasks.map(task => <TaskItem key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} onComplete={onComplete} onSendNotification={onSendNotification} />)
     ) : (

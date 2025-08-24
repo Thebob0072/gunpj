@@ -9,7 +9,7 @@ interface HeaderProps {
 
 const Header: FC<HeaderProps> = ({ view, setView, onAddTask }) => (
   <div className="flex justify-between items-center mb-6">
-    <h1 className="text-3xl font-bold text-neutral-800">Team Chatr Task Tracker</h1>
+    <h1 className="text-3xl font-bold text-neutral-800">กำหนดงาน</h1>
     <div className="flex space-x-2">
       {/* ปุ่มสำหรับแสดงรายการงาน */}
       <button 
