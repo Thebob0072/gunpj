@@ -125,7 +125,7 @@ const handleCompleteTask = async (task: Task) => {
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         },
-        body: JSON.stringify({ action: 'delete', id: taskId }),
+        body: JSON.stringify({ action: 'deleteTask', id: taskId }),
       });
 
       if (!response.ok) {
