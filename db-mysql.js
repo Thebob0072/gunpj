@@ -1,12 +1,20 @@
 const mysql = require('mysql2/promise');
 
+// Railway MySQL uses MYSQLHOST, MYSQLUSER, etc.
+// Custom/local uses DB_HOST, DB_USER, etc.
+const dbHost     = process.env.MYSQLHOST     || process.env.DB_HOST     || 'localhost';
+const dbPort     = process.env.MYSQLPORT     || process.env.DB_PORT     || 3306;
+const dbUser     = process.env.MYSQLUSER     || process.env.DB_USER     || 'gunpj_user';
+const dbPassword = process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || 'gunpj_password';
+const dbName     = process.env.MYSQLDATABASE || process.env.DB_NAME     || 'gunpj_db';
+
 // MySQL Connection Pool Configuration
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || 'gunpj_user',
-  password: process.env.DB_PASSWORD || 'gunpj_password',
-  database: process.env.DB_NAME || 'gunpj_db',
+  host: dbHost,
+  port: Number(dbPort),
+  user: dbUser,
+  password: dbPassword,
+  database: dbName,
   charset: 'utf8mb4',
   waitForConnections: true,
   connectionLimit: 10,
@@ -14,7 +22,7 @@ const pool = mysql.createPool({
 });
 
 console.log(`🗄️  MySQL Connection Pool initialized`);
-console.log(`   Host: ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}`);
+console.log(`   Host: ${dbHost}:${dbPort}`);
 
 // Initialize database tables
 async function initializeDatabase() {
