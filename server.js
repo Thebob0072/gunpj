@@ -79,8 +79,26 @@ function verifyLineSignature(req, res, next) {
 }
 
 // Use cors to allow requests from your React app
+// FRONTEND_URL can be comma-separated for multiple origins
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000'
+  origin: function (origin, callback) {
+    // Allow requests with no origin (curl, Postman, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    // Allow all vercel.app preview deployments
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
 }));
 
 // Set UTF-8 charset for all responses
