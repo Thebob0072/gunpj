@@ -890,7 +890,25 @@ app.post('/api/line-webhook', verifyLineSignature, (req, res) => {
         console.log('🚫 Member(s) left group:', groupId);
         // Could implement member removal logic here
       }
-      
+
+      // Auto-capture member info when they send a message in a group
+      if (event.type === 'message' && event.source?.type === 'group' && event.source?.groupId && event.source?.userId) {
+        const groupId = event.source.groupId;
+        const userId = event.source.userId;
+        try {
+          const profileRes = await fetch(`${LINE_MESSAGING_API}/group/${groupId}/member/${userId}`, {
+            headers: { 'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` }
+          });
+          if (profileRes.ok) {
+            const profile = await profileRes.json();
+            await LineMembers.addMember(groupId, userId, profile.displayName || userId, profile.pictureUrl || '');
+            console.log(`👤 Auto-captured member: ${profile.displayName} in group ${groupId}`);
+          }
+        } catch (e) {
+          // silent fail - don't break message flow
+        }
+      }
+
       // Handle postback from LINE buttons
       if (event.type === 'postback' && event.postback?.data) {
         console.log('📮 Postback received:', event.postback.data);

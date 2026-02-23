@@ -62,19 +62,18 @@ const LineGroupSelector: FC<LineGroupSelectorProps> = ({ isOpen, onClose, onSend
     setIsSyncing(true);
     setSyncResult(null);
     try {
-      // First sync all members from LINE API
-      const syncRes = await fetch(`${API_BASE}/groups/${selectedGroupId}/members/sync-all`, {
-        method: 'POST'
-      });
-      const syncData = await syncRes.json();
-      if (!syncRes.ok) {
-        setSyncResult(`❌ ${syncData.error || 'เกิดข้อผิดพลาด'}`);
-        return;
+      const response = await fetch(`${API_BASE}/line-groups-with-members`);
+      const data = await response.json();
+      const updatedGroups = Array.isArray(data.groups) ? data.groups : [];
+      setGroups(updatedGroups);
+      const group = updatedGroups.find((g: {groupId: string; members?: unknown[]}) => g.groupId === selectedGroupId);
+      const count = group?.members?.length || 0;
+      if (group) setGroupMembers(group.members || []);
+      if (count > 0) {
+        setSyncResult(`✅ พบสมาชิก ${count} คน`);
+      } else {
+        setSyncResult('⚠️ ยังไม่มีสมาชิก — ให้สมาชิกส่งข้อความในกลุ่มก่อน');
       }
-      const added = syncData.results?.filter((r: {status: string}) => r.status === 'added').length || 0;
-      setSyncResult(`✅ พบสมาชิก ${syncData.total || 0} คน (อ่านชื่อได้ ${added} คน)`);
-      // Refresh groups to show updated members
-      await fetchLineGroups();
     } catch {
       setSyncResult('❌ เกิดข้อผิดพลาด');
     } finally {
@@ -114,8 +113,8 @@ const LineGroupSelector: FC<LineGroupSelectorProps> = ({ isOpen, onClose, onSend
           <div className="flex items-start gap-3 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-xl">
             <AlertCircle size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-blue-700">
-              <p className="font-bold mb-1">ℹ️ วิธีให้ LINE อ่านชื่อได้</p>
-              <p>สมาชิกต้อง <strong>add bot เป็นเพื่อน</strong> ก่อน หรือ bot ต้องเห็น event เข้ากลุ่ม</p>
+              <p className="font-bold mb-1">ℹ️ วิธีเพิ่มสมาชิก</p>
+              <p>ให้สมาชิกแต่ละคน <strong>ส่งข้อความในกลุ่ม LINE</strong> → ระบบจะจำชื่ออัตโนมัติ จากนั้นกด <strong>ซิงค์ชื่อ</strong></p>
             </div>
           </div>
 
