@@ -1,22 +1,15 @@
 'use client';
 
-import { useState, useEffect, FC, FormEvent, useRef } from 'react';
+import { useState, useEffect, useMemo, FC, FormEvent, useRef } from 'react';
 import { Send, UserCog, X } from 'lucide-react';
 import Calendar from 'react-calendar';
 
 // --- CSS Imports ---
 import 'react-calendar/dist/Calendar.css';
-import './Calendar.css'; 
+import './Calendar.css';
 
 import { NewTask, Task, Assignee } from '@/types';
-import AssigneeModal from './AssigneeModal';
-import { FcCalendar, FcClock } from 'react-icons/fc'; 
-
-// const initialAssignees: Assignee[] = [
-//     { id: '1', name: 'ออดี้', position: 'Developer', role: 'Frontend' },
-//     { id: '2', name: 'จิรภัทร', position: 'Designer', role: 'UI/UX' },
-//     { id: '3', name: 'พรวิภา', position: 'Project Manager', role: 'Team Lead' },
-// ];
+import { FcCalendar, FcClock } from 'react-icons/fc';
 
 const formatDateForInput = (dateString: string | null) => {
   if (!dateString) return '';
@@ -45,19 +38,19 @@ interface TaskModalProps {
   onSaveTask: (task: NewTask | Task) => void;
   taskToEdit: Task | null;
   assignees: Assignee[];
-  onUpdateAssignees: (updatedAssignees: Assignee[]) => void; // <--- เพิ่มบรรทัดนี้
+  onUpdateAssignees: (updatedAssignees: Assignee[]) => void;
+  selectedLineGroupMembers?: any[];
 }
 
-const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit,assignees ,onUpdateAssignees}) => {
+const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit, assignees, onUpdateAssignees, selectedLineGroupMembers = [] }) => {
   const [formData, setFormData] = useState<NewTask | Task>({ title: '', details: '', assignee: '', startDate: '', endDate: '', status: 'To Do', startTime: '09:00', endTime: '17:00' });
-  const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [showDetailsInput, setShowDetailsInput] = useState(false);
 
-  const timeOptions = generateTimeOptions();
+  const timeOptions = useMemo(() => generateTimeOptions(), []);
   const startDateRef = useRef<HTMLDivElement>(null);
   const endDateRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<HTMLDivElement>(null);
@@ -173,9 +166,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
   }
 
   const handleAssigneeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value === 'add-new') setIsAssigneeModalOpen(true);
-    else setFormData(prev => ({ ...prev, assignee: value }));
+    setFormData(prev => ({ ...prev, assignee: e.target.value }));
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -195,15 +186,15 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
 
   return (
     <>
-      <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-          <div className="flex justify-between items-center mb-4 text-neutral-800">
-            <h2 className="text-2xl font-bold">{isEditing ? 'แก้ไขงาน' : 'เพิ่มงานใหม่'}</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-gradient-to-br from-white to-orange-50 rounded-3xl p-6 w-full max-w-md shadow-2xl border-2 border-orange-200">
+          <div className="flex justify-between items-center mb-4 text-orange-900">
+            <h2 className="text-2xl font-black">{isEditing ? 'แก้ไขงาน' : 'เพิ่มงานใหม่'}</h2>
+            <button onClick={onClose} className="text-orange-600 hover:text-orange-900 hover:bg-orange-200 p-2 rounded-lg transition-colors"><X size={24} /></button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className='space-y-1'>
-              <input name="title" value={formData.title} onChange={handleChange} placeholder="ชื่องาน" required className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50" />
+              <input name="title" value={formData.title} onChange={handleChange} placeholder="ชื่องาน" required className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 placeholder-orange-600 font-semibold" />
               
               {showDetailsInput ? (
                 <div className="space-y-1">
@@ -212,13 +203,13 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                     value={formData.details || ''}
                     onChange={handleChange}
                     placeholder="เพิ่มรายละเอียด (ไม่บังคับ)..."
-                    className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 text-sm"
+                    className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 text-sm placeholder-orange-600 font-semibold"
                     rows={3}
                   />
                   <button
                     type="button"
                     onClick={handleHideDetails}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                    className="text-sm text-orange-600 hover:text-orange-900 transition-colors font-semibold"
                   >
                     - ซ่อนรายละเอียด
                   </button>
@@ -227,7 +218,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                 <button
                   type="button"
                   onClick={() => setShowDetailsInput(true)}
-                  className="text-sm text-amber-600 hover:text-amber-700 transition-colors"
+                  className="text-sm text-orange-600 hover:text-orange-900 transition-colors font-semibold"
                 >
                   + เพิ่มรายละเอียด
                 </button>
@@ -235,19 +226,20 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
             </div>
 
             <div className="flex items-center space-x-2">
-              <select name="assignee" value={formData.assignee} onChange={handleAssigneeChange} required className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50">
-                <option value="" disabled>เลือกผู้รับผิดชอบ</option>
-                {assignees.map(assignee => (<option key={assignee.id} value={assignee.name}>{assignee.name}</option>))}
-                <option value="add-new">-- เพิ่มคนใหม่ --</option>
+              <select name="assignee" value={formData.assignee} onChange={handleAssigneeChange} required className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 font-semibold">
+                <option value="" disabled>เลือกสมาชิกในกลุ่ม</option>
+                {selectedLineGroupMembers.length > 0 
+                  ? selectedLineGroupMembers.map(member => (<option key={member.userId} value={member.displayName}>{member.displayName}</option>))
+                  : assignees.map(assignee => (<option key={assignee.id} value={assignee.name}>{assignee.name}</option>))
+                }
               </select>
-              <button type="button" onClick={() => setIsAssigneeModalOpen(true)} className="p-3 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"><UserCog size={20} /></button>
             </div>
 
             <div className="flex space-x-4">
               <div className="w-1/2 space-y-2">
                 <div className="relative" ref={startDateRef}>
-                  <label className="text-sm font-medium text-neutral-600">วันที่เริ่มต้น</label>
-                  <input type="text" value={formatDateForInput(formData.startDate)} onClick={() => handleToggle('startDate')} placeholder="เลือกวันที่" readOnly className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer" />
+                  <label className="text-sm font-bold text-orange-900">วันที่เริ่มต้น</label>
+                  <input type="text" value={formatDateForInput(formData.startDate)} onClick={() => handleToggle('startDate')} placeholder="เลือกวันที่" readOnly className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 cursor-pointer font-semibold placeholder-orange-600" />
                   <FcCalendar size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                   {showStartDatePicker && (
                     <div style={{ position: 'absolute', zIndex: 11, ...startDateCalendarStyle }}>
@@ -256,8 +248,8 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                   )}
                 </div>
                 <div className="relative" ref={startTimeRef}>
-                  <label className="text-sm font-medium text-neutral-600">เวลาเริ่มต้น</label>
-                  <input type="text" value={formData.startTime} onClick={() => handleToggle('startTime')} readOnly className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer"/>
+                  <label className="text-sm font-bold text-orange-900">เวลาเริ่มต้น</label>
+                  <input type="text" value={formData.startTime} onClick={() => handleToggle('startTime')} readOnly className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 cursor-pointer font-semibold"/>
                   <FcClock size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                   {showStartTimePicker && (
                     <div className="time-dropdown">
@@ -273,8 +265,8 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
 
               <div className="w-1/2 space-y-2">
                  <div className="relative" ref={endDateRef}>
-                    <label className="text-sm font-medium text-neutral-600">วันที่สิ้นสุด</label>
-                    <input type="text" value={formatDateForInput(formData.endDate)} onClick={() => handleToggle('endDate')} placeholder="เลือกวันที่" readOnly disabled={!formData.startDate} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer disabled:bg-neutral-200" />
+                    <label className="text-sm font-bold text-orange-900">วันที่สิ้นสุด</label>
+                    <input type="text" value={formatDateForInput(formData.endDate)} onClick={() => handleToggle('endDate')} placeholder="เลือกวันที่" readOnly disabled={!formData.startDate} className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 cursor-pointer disabled:bg-orange-200 font-semibold placeholder-orange-600" />
                     <FcCalendar size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                     {showEndDatePicker && (
                       <div style={{ position: 'absolute', zIndex: 11, ...endDateCalendarStyle }}>
@@ -283,8 +275,8 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
                     )}
                  </div>
                  <div className="relative" ref={endTimeRef}>
-                   <label className="text-sm font-medium text-neutral-600">เวลาสิ้นสุด</label>
-                    <input type="text" value={formData.endTime} onClick={() => handleToggle('endTime')} readOnly disabled={!formData.startDate} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50 cursor-pointer disabled:bg-neutral-200"/>
+                   <label className="text-sm font-bold text-orange-900">เวลาสิ้นสุด</label>
+                    <input type="text" value={formData.endTime} onClick={() => handleToggle('endTime')} readOnly disabled={!formData.startDate} className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 cursor-pointer disabled:bg-orange-200 font-semibold"/>
                     <FcClock size={24} className="absolute right-3 bottom-3 pointer-events-none" />
                     {showEndTimePicker && (
                       <div className="time-dropdown">
@@ -302,20 +294,19 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
             </div>
 
             {isEditing && (
-              <select name="status" value={(formData as Task).status} onChange={handleChange} className="w-full p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-neutral-800 bg-neutral-50">
+              <select name="status" value={(formData as Task).status} onChange={handleChange} className="w-full p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-900 bg-orange-50 font-semibold">
                 <option value="To Do">ยังไม่เริ่ม</option>
                 <option value="In Progress">กำลังดำเนินงาน</option>
                 <option value="Completed">เสร็จสิ้น</option>
               </select>
             )}
-            <button type="submit" className="w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition-colors duration-200">
+            <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black py-3 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 border-2 border-orange-700 shadow-lg shadow-orange-500/30">
               <Send size={20} className="inline-block mr-2" />
               <span>{isEditing ? 'บันทึกการเปลี่ยนแปลง' : 'มอบหมายงาน'}</span>
             </button>
           </form>
         </div>
       </div>
-      <AssigneeModal isOpen={isAssigneeModalOpen} onClose={() => setIsAssigneeModalOpen(false)} assignees={assignees} onUpdateAssignees={onUpdateAssignees} />
     </>
   );
 };

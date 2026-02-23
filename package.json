@@ -15,14 +15,17 @@
     "@mui/x-date-pickers": "^8.10.2",
     "@mui/x-date-pickers-pro": "^8.10.2",
     "@types/recharts": "^2.0.1",
+    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.5",
     "cross-env": "^10.0.0",
+    "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "google-auth-library": "^10.2.1",
     "google-spreadsheet": "^4.1.1",
     "lucide-react": "^0.539.0",
+    "mysql2": "^3.17.4",
     "next": "15.4.6",
     "node-fetch": "^3.3.2",
     "react": "19.1.0",
@@ -33,7 +36,8 @@
     "react-time-picker": "^8.0.2",
     "recharts": "^3.1.2",
     "save-dev": "^0.0.1-security",
-    "sweetalert2": "^11.22.4"
+    "sweetalert2": "^11.22.4",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
