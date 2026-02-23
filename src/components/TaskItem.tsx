@@ -72,9 +72,9 @@ const TaskItem: FC<TaskItemProps> = ({ task, onEdit, onDelete, onComplete, onSen
   };
 
   return (
-    <div className="bg-white border-2 border-orange-200 rounded-2xl p-6 hover:shadow-xl hover:shadow-orange-200/50 transition-all duration-200 group">
+    <div className="bg-white border-2 border-orange-200 rounded-2xl p-4 sm:p-6 hover:shadow-xl hover:shadow-orange-200/50 transition-all duration-200 group">
       {/* Header: Title and Status */}
-      <div className="flex justify-between items-start gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 mb-4">
         <div className="flex-1">
           <h3 className="text-xl font-black text-orange-900 mb-1">
             {task.title}
@@ -85,7 +85,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, onEdit, onDelete, onComplete, onSen
             </p>
           )}
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 self-start">
           {renderTaskStatusBadge(task.status)}
         </div>
       </div>
@@ -105,16 +105,17 @@ const TaskItem: FC<TaskItemProps> = ({ task, onEdit, onDelete, onComplete, onSen
           <div className="p-2 bg-orange-100 rounded-lg">
             <Calendar size={18} className="text-orange-600" />
           </div>
-          <div className="flex items-center gap-2 text-orange-900 font-medium">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-orange-900 font-medium">
             <span>{formatThaiDateTime(task.startDate, task.startTime)}</span>
-            <span className="text-orange-400">→</span>
+            <span className="hidden sm:inline text-orange-400">→</span>
+            <span className="sm:hidden text-orange-400 text-xs">ถึง</span>
             <span>{formatThaiDateTime(task.endDate, task.endTime)}</span>
           </div>
         </div>
       </div>
 
       {/* Footer: Status and Actions */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
         {/* Status Info */}
         <div className="flex items-center gap-2">
           {getStatusIcon()}
@@ -124,7 +125,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, onEdit, onDelete, onComplete, onSen
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-end sm:justify-start">
           {task.status !== 'Completed' && (
             <button 
               onClick={() => onComplete(task)} 

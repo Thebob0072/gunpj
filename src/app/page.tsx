@@ -264,7 +264,7 @@ const handleCompleteTask = async (task: Task) => {
       <div className="w-full flex-1 flex flex-col">
         {/* Message Alert */}
         {message && (
-          <div className="px-6 pt-6 pb-0">
+          <div className="px-2 pt-2 pb-0 sm:px-6 sm:pt-6">
             <div className="bg-white border-l-4 border-orange-500 shadow-lg rounded-2xl p-4 flex items-start gap-3 border-2 border-orange-300">
               <div className="text-orange-600 text-2xl flex-shrink-0">✓</div>
               <div>
@@ -275,7 +275,7 @@ const handleCompleteTask = async (task: Task) => {
         )}
 
         {/* Main Content */}
-        <div className="flex-1 bg-gradient-to-br from-white to-orange-50 m-6 mt-4 rounded-3xl shadow-xl p-8 space-y-6 border-2 border-orange-200 overflow-y-auto">
+        <div className="flex-1 bg-gradient-to-br from-white to-orange-50 m-2 mt-2 sm:m-6 sm:mt-4 rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 space-y-4 sm:space-y-6 border-2 border-orange-200 overflow-y-auto">
           <Header view={view} setView={setView} onAddTask={handleOpenModalForAdd} onOpenLineGroupSelector={() => setIsLineGroupSelectorOpen(true)} selectedLineGroupName={selectedLineGroupName || undefined} selectedLineGroupMemberCount={selectedLineGroupMembers.length} />
           {renderContent()}
         </div>

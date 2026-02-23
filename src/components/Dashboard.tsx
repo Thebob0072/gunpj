@@ -37,7 +37,7 @@ const Dashboard: FC<DashboardProps> = ({ tasks, dashboardData }) => {
           <BarChart3 size={28} className="text-orange-600" />
         </div>
         <div>
-          <h2 className="text-3xl font-black text-orange-900">แดชบอร์ด</h2>
+          <h2 className="text-2xl sm:text-3xl font-black text-orange-900">แดชบอร์ด</h2>
           <p className="text-sm text-orange-700 font-semibold mt-1">สรุปสถานะโครงการและความคืบหน้า</p>
         </div>
       </div>
@@ -79,7 +79,7 @@ const Dashboard: FC<DashboardProps> = ({ tasks, dashboardData }) => {
       </div>
 
       {/* Chart */}
-      <div className="bg-white border-2 border-orange-200 p-8 rounded-2xl shadow-lg">
+      <div className="bg-white border-2 border-orange-200 p-4 sm:p-8 rounded-2xl shadow-lg">
         <h3 className="text-2xl font-black text-orange-900 mb-6">งานเสร็จสิ้นรายเดือน</h3>
         <ResponsiveContainer width="100%" height={350}>
           <LineChart 

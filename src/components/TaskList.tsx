@@ -23,7 +23,7 @@ const TaskList: FC<TaskListProps> = ({ tasks, onEdit, onDelete, onComplete, onSe
             <ListTodo size={28} className="text-orange-600" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-orange-900">รายการงาน</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-orange-900">รายการงาน</h2>
             <p className="text-sm text-orange-700 font-semibold mt-1">
               {pendingCount} งานที่ต้องทำ • {completedCount} งานเสร็จสิ้น
             </p>

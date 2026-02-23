@@ -186,8 +186,8 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-gradient-to-br from-white to-orange-50 rounded-3xl p-6 w-full max-w-md shadow-2xl border-2 border-orange-200">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+        <div className="bg-gradient-to-br from-white to-orange-50 rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 w-full sm:max-w-md shadow-2xl border-2 border-orange-200 max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4 text-orange-900">
             <h2 className="text-2xl font-black">{isEditing ? 'แก้ไขงาน' : 'เพิ่มงานใหม่'}</h2>
             <button onClick={onClose} className="text-orange-600 hover:text-orange-900 hover:bg-orange-200 p-2 rounded-lg transition-colors"><X size={24} /></button>
@@ -235,7 +235,7 @@ const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit
               </select>
             </div>
 
-            <div className="flex space-x-4">
+            <div className="flex gap-3">
               <div className="w-1/2 space-y-2">
                 <div className="relative" ref={startDateRef}>
                   <label className="text-sm font-bold text-orange-900">วันที่เริ่มต้น</label>
