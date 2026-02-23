@@ -675,34 +675,20 @@ app.post('/api/groups/:groupId/members/fix-names', async (req, res) => {
     const results = [];
     for (const member of membersToFix) {
       try {
-        // Try to get profile from LINE API (works if user has friended the bot)
-        const profileRes = await fetch(`${LINE_MESSAGING_API}/profile/${member.userId}`, {
+        // Use group member endpoint — works for ALL group members regardless of friendship
+        const groupProfileRes = await fetch(`${LINE_MESSAGING_API}/group/${groupId}/member/${member.userId}`, {
           headers: { 'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` }
         });
-        
-        if (profileRes.ok) {
-          const profile = await profileRes.json();
+        if (groupProfileRes.ok) {
+          const profile = await groupProfileRes.json();
           if (profile.displayName) {
             await LineMembers.addMember(groupId, member.userId, profile.displayName, profile.pictureUrl || '');
             console.log(`  ✅ Fixed: ${member.userId} → ${profile.displayName}`);
             results.push({ userId: member.userId, displayName: profile.displayName, status: 'fixed' });
           }
         } else {
-          // Try group member profile endpoint
-          const groupProfileRes = await fetch(`${LINE_MESSAGING_API}/group/${groupId}/member/${member.userId}`, {
-            headers: { 'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` }
-          });
-          if (groupProfileRes.ok) {
-            const profile = await groupProfileRes.json();
-            if (profile.displayName) {
-              await LineMembers.addMember(groupId, member.userId, profile.displayName, profile.pictureUrl || '');
-              console.log(`  ✅ Fixed via group endpoint: ${member.userId} → ${profile.displayName}`);
-              results.push({ userId: member.userId, displayName: profile.displayName, status: 'fixed' });
-            }
-          } else {
-            console.log(`  ⚠️  Cannot fetch profile for ${member.userId} - user not friend with bot`);
-            results.push({ userId: member.userId, status: 'unfetchable', reason: 'User has not added bot as friend' });
-          }
+          console.log(`  ⚠️  Cannot fetch profile for ${member.userId}`);
+          results.push({ userId: member.userId, status: 'unfetchable' });
         }
       } catch (err) {
         console.log(`  ❌ Error for ${member.userId}:`, err.message);

@@ -62,15 +62,20 @@ const LineGroupSelector: FC<LineGroupSelectorProps> = ({ isOpen, onClose, onSend
     setIsSyncing(true);
     setSyncResult(null);
     try {
-      const response = await fetch(`${API_BASE}/line-groups-with-members`);
-      const data = await response.json();
-      const updatedGroups = Array.isArray(data.groups) ? data.groups : [];
+      // Call fix-names: uses group member endpoint (works for non-friends)
+      const res = await fetch(`${API_BASE}/groups/${selectedGroupId}/members/fix-names`, { method: 'POST' });
+      const data = await res.json();
+      // Refresh groups
+      const refreshRes = await fetch(`${API_BASE}/line-groups-with-members`);
+      const refreshData = await refreshRes.json();
+      const updatedGroups = Array.isArray(refreshData.groups) ? refreshData.groups : [];
       setGroups(updatedGroups);
       const group = updatedGroups.find((g: {groupId: string; members?: unknown[]}) => g.groupId === selectedGroupId);
-      const count = group?.members?.length || 0;
       if (group) setGroupMembers(group.members || []);
-      if (count > 0) {
-        setSyncResult(`✅ พบสมาชิก ${count} คน`);
+      const fixed = data.fixed || 0;
+      const total = group?.members?.length || 0;
+      if (total > 0) {
+        setSyncResult(`✅ พบสมาชิก ${total} คน${fixed > 0 ? ` (อัปเดตชื่อ ${fixed} คน)` : ''}`);
       } else {
         setSyncResult('⚠️ ยังไม่มีสมาชิก — ให้สมาชิกส่งข้อความในกลุ่มก่อน');
       }
@@ -114,7 +119,7 @@ const LineGroupSelector: FC<LineGroupSelectorProps> = ({ isOpen, onClose, onSend
             <AlertCircle size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-blue-700">
               <p className="font-bold mb-1">ℹ️ วิธีเพิ่มสมาชิก</p>
-              <p>ให้สมาชิกแต่ละคน <strong>ส่งข้อความในกลุ่ม LINE</strong> → ระบบจะจำชื่ออัตโนมัติ จากนั้นกด <strong>ซิงค์ชื่อ</strong></p>
+              <p>ให้สมาชิกแต่ละคน <strong>ส่งข้อความอะไรก็ได้ในกลุ่ม LINE</strong> ครั้งเดียว จากนั้นกด <strong>ซิงค์ชื่อ</strong> — ไม่ต้อง add bot เป็นเพื่อน</p>
             </div>
           </div>
 
