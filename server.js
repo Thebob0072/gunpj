@@ -604,6 +604,57 @@ app.post('/api/groups/:groupId/members/sync', async (req, res) => {
   }
 });
 
+// Sync ALL members from LINE group using getGroupMemberIds API
+app.post('/api/groups/:groupId/members/sync-all', async (req, res) => {
+  const { groupId } = req.params;
+  try {
+    // Step 1: Get all member IDs from LINE API (paginated)
+    let memberIds = [];
+    let start = null;
+    do {
+      const url = `${LINE_MESSAGING_API}/group/${groupId}/members/ids` + (start ? `?start=${start}` : '');
+      const idsRes = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` }
+      });
+      if (!idsRes.ok) {
+        const err = await idsRes.text();
+        return res.status(500).json({ error: 'LINE API error: ' + err });
+      }
+      const idsData = await idsRes.json();
+      memberIds = memberIds.concat(idsData.memberIds || []);
+      start = idsData.next || null;
+    } while (start);
+
+    console.log(`👥 Found ${memberIds.length} members in group ${groupId}`);
+
+    // Step 2: Fetch profile for each member
+    const results = [];
+    for (const userId of memberIds) {
+      try {
+        const profileRes = await fetch(`${LINE_MESSAGING_API}/group/${groupId}/member/${userId}`, {
+          headers: { 'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` }
+        });
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          await LineMembers.addMember(groupId, userId, profile.displayName || userId, profile.pictureUrl || '');
+          results.push({ userId, displayName: profile.displayName, status: 'added' });
+        } else {
+          await LineMembers.addMember(groupId, userId, userId, '');
+          results.push({ userId, status: 'id_only' });
+        }
+      } catch (e) {
+        results.push({ userId, status: 'error', reason: e.message });
+      }
+    }
+
+    const updatedMembers = await LineMembers.getMembersByGroupId(groupId);
+    res.json({ success: true, total: memberIds.length, results, members: updatedMembers });
+  } catch (error) {
+    console.error('Error syncing members:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Auto-fix member names: fetch profile from LINE for members with missing/userId-style names
 app.post('/api/groups/:groupId/members/fix-names', async (req, res) => {
   const { groupId } = req.params;

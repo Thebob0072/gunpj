@@ -62,18 +62,18 @@ const LineGroupSelector: FC<LineGroupSelectorProps> = ({ isOpen, onClose, onSend
     setIsSyncing(true);
     setSyncResult(null);
     try {
-      const res = await fetch(`${API_BASE}/groups/${selectedGroupId}/members/fix-names`, {
+      // First sync all members from LINE API
+      const syncRes = await fetch(`${API_BASE}/groups/${selectedGroupId}/members/sync-all`, {
         method: 'POST'
       });
-      const data = await res.json();
-      if (data.fixed > 0) {
-        setSyncResult(`✅ แก้ไขชื่อได้ ${data.fixed} คน`);
-      } else if (data.unfetchable > 0) {
-        setSyncResult(`⚠️ ${data.unfetchable} คนยังไม่ได้ add bot เป็นเพื่อน`);
-      } else {
-        setSyncResult('✅ ชื่อทุกคนถูกต้องแล้ว');
+      const syncData = await syncRes.json();
+      if (!syncRes.ok) {
+        setSyncResult(`❌ ${syncData.error || 'เกิดข้อผิดพลาด'}`);
+        return;
       }
-      // Refresh groups to show updated names
+      const added = syncData.results?.filter((r: {status: string}) => r.status === 'added').length || 0;
+      setSyncResult(`✅ พบสมาชิก ${syncData.total || 0} คน (อ่านชื่อได้ ${added} คน)`);
+      // Refresh groups to show updated members
       await fetchLineGroups();
     } catch {
       setSyncResult('❌ เกิดข้อผิดพลาด');
