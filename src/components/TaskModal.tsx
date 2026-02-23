@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useMemo, FC, FormEvent, useRef } from 'react';
-import { Send, UserCog, X } from 'lucide-react';
+import { Send, X } from 'lucide-react';
 import Calendar from 'react-calendar';
 
 // --- CSS Imports ---
 import 'react-calendar/dist/Calendar.css';
 import './Calendar.css';
 
-import { NewTask, Task, Assignee } from '@/types';
+import { NewTask, Task, Assignee, LineUser } from '@/types';
 import { FcCalendar, FcClock } from 'react-icons/fc';
 
 const formatDateForInput = (dateString: string | null) => {
@@ -38,11 +38,11 @@ interface TaskModalProps {
   onSaveTask: (task: NewTask | Task) => void;
   taskToEdit: Task | null;
   assignees: Assignee[];
-  onUpdateAssignees: (updatedAssignees: Assignee[]) => void;
-  selectedLineGroupMembers?: any[];
+  onUpdateAssignees?: (updatedAssignees: Assignee[]) => void;
+  selectedLineGroupMembers?: LineUser[];
 }
 
-const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit, assignees, onUpdateAssignees, selectedLineGroupMembers = [] }) => {
+const TaskModal: FC<TaskModalProps> = ({ isOpen, onClose, onSaveTask, taskToEdit, assignees, selectedLineGroupMembers = [] }) => {
   const [formData, setFormData] = useState<NewTask | Task>({ title: '', details: '', assignee: '', startDate: '', endDate: '', status: 'To Do', startTime: '09:00', endTime: '17:00' });
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);

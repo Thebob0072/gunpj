@@ -75,7 +75,7 @@ const LineGroupSelector: FC<LineGroupSelectorProps> = ({ isOpen, onClose, onSend
       }
       // Refresh groups to show updated names
       await fetchLineGroups();
-    } catch (err) {
+    } catch {
       setSyncResult('❌ เกิดข้อผิดพลาด');
     } finally {
       setIsSyncing(false);

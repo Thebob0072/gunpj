@@ -6,7 +6,7 @@ import TaskList from '@/components/TaskList';
 import Dashboard from '@/components/Dashboard';
 import TaskModal from '@/components/TaskModal';
 import LineGroupSelector from '@/components/LineGroupSelector';
-import { Task, NewTask, DashboardData, Assignee } from '@/types';
+import { Task, NewTask, Assignee, LineUser } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const TELEGRAM_API_URL = process.env.NEXT_PUBLIC_TELEGRAM_API_URL;
@@ -46,7 +46,7 @@ const HomePage: FC = () => {
   const [isLineGroupSelectorOpen, setIsLineGroupSelectorOpen] = useState<boolean>(false);
   const [selectedLineGroupId, setSelectedLineGroupId] = useState<string | null>(null);
   const [selectedLineGroupName, setSelectedLineGroupName] = useState<string | null>(null);
-  const [selectedLineGroupMembers, setSelectedLineGroupMembers] = useState<any[]>([]);
+  const [selectedLineGroupMembers, setSelectedLineGroupMembers] = useState<LineUser[]>([]);
 
   const showMessage = (msg: string): void => {
     setMessage(msg);
