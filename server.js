@@ -96,6 +96,10 @@ app.use(cors({
     if (origin.endsWith('.vercel.app')) {
       return callback(null, true);
     }
+    // Allow any custom domain ending in audithebob.art
+    if (origin.endsWith('audithebob.art') || origin === 'https://audithebob.art') {
+      return callback(null, true);
+    }
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true
