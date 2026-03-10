@@ -1,7 +1,8 @@
 'use client';
 
 import React, { FC } from 'react';
-import { AlertCircle, FileText, TrendingUp, CheckCircle } from 'lucide-react';
+import { AlertCircle, FileText, TrendingUp, CheckCircle, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { BUDGET_SUMMARY, BUDGET_ANOMALIES, ANOMALY_SUMMARY } from '@/data/budget-anomalies';
 
 const formatBaht = (n: number) =>
@@ -12,8 +13,19 @@ const formatBaht = (n: number) =>
   }).format(n);
 
 const AnomaliesPage: FC = () => {
+  const router = useRouter();
+
   return (
     <div className="w-full bg-white text-gray-900 px-3 sm:px-6 md:px-8 py-6 sm:py-8">
+      {/* Back Button */}
+      <button
+        onClick={() => router.back()}
+        className="mb-6 flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <ArrowLeft size={18} />
+        ย้อนกลับ
+      </button>
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 sm:gap-3 mb-2">
@@ -165,7 +177,7 @@ const AnomaliesPage: FC = () => {
                         {item.name}
                       </p>
                       <a
-                        href={`ordinance69-1.pdf#page=${item.page}`}
+                        href={`/ordinance69-1.pdf#page=${item.page}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors"
@@ -195,7 +207,7 @@ const AnomaliesPage: FC = () => {
               {anomaly.pdfPages.map((page) => (
                 <a
                   key={`page-${page}`}
-                  href={`ordinance69-1.pdf#page=${page}`}
+                  href={`/ordinance69-1.pdf#page=${page}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold text-gray-700 hover:text-blue-600"
