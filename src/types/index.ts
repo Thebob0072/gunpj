@@ -56,13 +56,13 @@ export interface HackatonSession {
   title: string;
   description: string;
   emoji: string;
-  totalBudget: number;
+  totalBudget: string;
   createdAt?: string;
   updatedAt?: string;
   // computed stats (returned from server)
   itemCount?: number;
-  totalSpent?: number;
-  totalAllocated?: number;
+  totalSpent?: string;
+  totalAllocated?: string;
 }
 
 export interface HackatonBudgetItem {
@@ -70,9 +70,11 @@ export interface HackatonBudgetItem {
   sessionId: string;
   title: string;
   budget: number;
-  spent: number;
+  spent: string;
   category: string;
   color: string;
+  
+  
 }
 
 export interface HackatonData {

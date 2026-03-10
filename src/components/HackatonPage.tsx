@@ -89,6 +89,7 @@ const HackatonPage: FC = () => {
       id: category.id,
       title: category.name,
       description: '',
+      emoji: category.icon || '⚡',
       totalBudget: catTotal.toString(),
       totalSpent: '0',
       totalAllocated: catTotal.toString(),
@@ -98,10 +99,14 @@ const HackatonPage: FC = () => {
     setSessionTitle(category.name);
     setTotalBudget(catTotal);
     setItems((category.items || []).map((item: BudgetItem) => ({
-      ...item,
-      budget: Number(item.budget),
-      spent: Number(item.budget),
-    })));
+        id: item.id,
+        sessionId: category.id,
+        title: item.name,
+        budget: Number(item.budget),
+        spent: Number(item.budget),
+        category: item.category || CATEGORY_OPTIONS[0],
+        color: item.color || PRESET_COLORS[0],
+      })) as unknown as HackatonBudgetItem[]);
     setView('detail');
   };
 
@@ -212,8 +217,8 @@ const HackatonPage: FC = () => {
   };
 
   // ── Derived values ────────────────────────────────────────────────────────
-  const totalSpent = items.reduce((s, i) => s + i.spent, 0);
-  const totalAllocated = items.reduce((s, i) => s + i.budget, 0);
+  const totalSpent = items.reduce((s, i) => s + ('spent' in i ? Number(i.spent) : 0), 0);
+  const totalAllocated = items.reduce((s, i) => s + Number(i.budget), 0);
   const remaining = totalBudget - totalSpent;
   const overallPct = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
 
@@ -432,7 +437,7 @@ const HackatonPage: FC = () => {
               { label: 'รายการทั้งหมด', value: items.length, icon: <Trophy size={20} />, color: 'text-orange-500', border: 'border-orange-500/30' },
               { label: 'งบที่จัดสรร', value: formatBaht(totalAllocated), icon: <DollarSign size={20} />, color: 'text-cyan-400', border: 'border-cyan-500/30' },
               { label: 'ใช้ไปแล้ว', value: formatBaht(totalSpent), icon: <TrendingDown size={20} />, color: 'text-red-400', border: 'border-red-500/30' },
-              { label: 'เกินงบ', value: items.filter(i => i.spent > i.budget).length + ' รายการ', icon: <Flame size={20} />, color: 'text-orange-400', border: 'border-orange-500/30' },
+              { label: 'เกินงบ', value: items.filter(i => 'spent' in i && Number(i.spent) > Number(i.budget)).length + ' รายการ', icon: <Flame size={20} />, color: 'text-orange-400', border: 'border-orange-500/30' },
             ].map((s, idx) => (
               <div key={idx} className={`bg-gray-50 border ${s.border} rounded-xl p-4 hover:bg-gray-100 transition-colors`}>
                 <div className={`${s.color} mb-2`}>{s.icon}</div>
@@ -454,21 +459,24 @@ const HackatonPage: FC = () => {
           {/* Items list */}
           <div className="space-y-4">
             {items.map(item => {
-              const pct = item.budget > 0 ? Math.min((item.spent / item.budget) * 100, 100) : 0;
-              const isOver = item.spent > item.budget;
+              const hackItem = item as HackatonBudgetItem;
+              const spent = 'spent' in item ? Number(item.spent) : 0;
+              const budget = Number(item.budget);
+              const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
+              const isOver = spent > budget;
               return (
                 <div
                   key={item.id}
                   className="group bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-gray-300 transition-all cursor-pointer"
-                  onClick={() => openEditItem(item)}
+                  onClick={() => 'spent' in item && 'category' in item && 'color' in item ? openEditItem(item as HackatonBudgetItem) : null}
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="w-4 h-4 rounded-full flex-shrink-0 mt-1 ring-2 ring-white/20" style={{ backgroundColor: item.color, boxShadow: `0 0 12px ${item.color}80` }} />
+                      <div className="w-4 h-4 rounded-full flex-shrink-0 mt-1 ring-2 ring-white/20" style={{ backgroundColor: hackItem.color, boxShadow: `0 0 12px ${hackItem.color}80` }} />
                       <div className="min-w-0">
-                        <p className="font-black text-lg sm:text-xl text-gray-900 truncate">{item.title}</p>
+                        <p className="font-black text-lg sm:text-xl text-gray-900 truncate">{hackItem.title}</p>
                         <p className="text-gray-500 text-xs mt-1">
-                          {item.category}
+                          {hackItem.category}
                           {isOver && <span className="ml-2 text-red-400 font-bold animate-pulse">⚠ เกินงบ!</span>}
                         </p>
                       </div>
@@ -484,13 +492,13 @@ const HackatonPage: FC = () => {
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, backgroundColor: isOver ? '#ff4444' : item.color, boxShadow: `0 0 8px ${isOver ? '#ff444480' : item.color + '80'}` }}
+                        style={{ width: `${pct}%`, backgroundColor: isOver ? '#ff4444' : hackItem.color, boxShadow: `0 0 8px ${isOver ? '#ff444480' : hackItem.color + '80'}` }}
                       />
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-900/50">ใช้: <span className="font-bold" style={{ color: isOver ? '#ff6666' : item.color }}>{formatBaht(item.spent)}</span></span>
-                    <span className="text-gray-900/30">จาก {formatBaht(item.budget)}</span>
+                    <span className="text-gray-900/50">ใช้: <span className="font-bold" style={{ color: isOver ? '#ff6666' : hackItem.color }}>{formatBaht(Number(hackItem.spent))}</span></span>
+                    <span className="text-gray-900/30">จาก {formatBaht(Number(hackItem.budget))}</span>
                     <div className="flex items-center gap-1 text-gray-500 text-xs">
                       {isOver ? <TrendingUp size={12} className="text-red-400" /> : <TrendingDown size={12} className="text-green-400" />}
                       {pct.toFixed(0)}%

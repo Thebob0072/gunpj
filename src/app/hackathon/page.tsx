@@ -586,7 +586,7 @@ export default function HackathonPage() {
                 </div>
                 <div className="bg-slate-100 rounded-xl p-4 text-sm font-mono text-emerald-600 space-y-3 overflow-x-auto border border-slate-200">
                   <div>
-                    <span className="text-gray-400">// budget per dog per year</span>
+                    <span className="text-gray-400">{'// budget per dog per year'}</span>
                     <br />
                     <span className="text-blue-700">budget_per_dog_per_year</span>
                     {' = '}
@@ -599,7 +599,7 @@ export default function HackathonPage() {
                     {' ฿/ตัว/ปี'}
                   </div>
                   <div>
-                    <span className="text-gray-400">// personnel to welfare ratio</span>
+                    <span className="text-gray-400">{'// personnel to welfare ratio'}</span>
                     <br />
                     <span className="text-blue-700">personnel_to_welfare_ratio</span>
                     {' = '}
@@ -612,7 +612,7 @@ export default function HackathonPage() {
                     {' เท่า'}
                   </div>
                   <div>
-                    <span className="text-gray-400">// infra to welfare ratio</span>
+                    <span className="text-gray-400">{'// infra to welfare ratio'}</span>
                     <br />
                     <span className="text-blue-700">infra_to_welfare_ratio</span>
                     {' = '}
@@ -811,11 +811,11 @@ export default function HackathonPage() {
                 <div className="text-center py-8 text-gray-500">
                   <div>กำลังโหลดข้อมูล...</div>
                 </div>
-              ) : strayAnimalBudget?.subcategories?.length > 0 ? (
+              ) : (strayAnimalBudget?.subcategories?.length ?? 0) > 0 ? (
                 <div className="space-y-4">
                   {/* Summary Cards */}
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {strayAnimalBudget.subcategories.map((item) => (
+                    {strayAnimalBudget!.subcategories!.map((item) => (
                       <div
                         key={item.id}
                         className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
@@ -856,7 +856,7 @@ export default function HackathonPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {strayAnimalBudget.subcategories.map((item, idx) => (
+                        {strayAnimalBudget!.subcategories!.map((item, idx) => (
                           <tr
                             key={item.id}
                             className={`border-b border-gray-150 hover:bg-orange-50 transition-colors ${
@@ -892,19 +892,19 @@ export default function HackathonPage() {
                       <div>
                         <div className="text-xs text-gray-600 mb-1">รวม</div>
                         <div className="text-lg font-bold text-orange-600">
-                          {formatBaht(strayAnimalBudget.total_budget)}
+                          {formatBaht(strayAnimalBudget!.total_budget)}
                         </div>
                       </div>
                       <div>
                         <div className="text-xs text-gray-600 mb-1">ปีงบประมาณ</div>
                         <div className="text-lg font-bold text-gray-800">
-                          {strayAnimalBudget.fiscal_year}
+                          {strayAnimalBudget!.fiscal_year}
                         </div>
                       </div>
                       <div>
                         <div className="text-xs text-gray-600 mb-1">สกุลเงิน</div>
                         <div className="text-lg font-bold text-gray-800">
-                          {strayAnimalBudget.currency}
+                          {strayAnimalBudget!.currency}
                         </div>
                       </div>
                     </div>

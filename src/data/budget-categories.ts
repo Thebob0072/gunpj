@@ -6,6 +6,9 @@ export interface BudgetItem {
   budget: number;
   unit: string;
   reference: string;
+  spent?: string; // Added spent as optional for HackatonBudgetItem compatibility
+  category?: string; // Added category for HackatonBudgetItem compatibility
+  color?: string; // Added color for HackatonBudgetItem compatibility
 }
 
 export interface BudgetCategory {
