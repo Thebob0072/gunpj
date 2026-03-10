@@ -32,8 +32,8 @@
 ไปที่ **Channels > GUNPJ Bot > Basic Settings**
 
 ```
-✓ Channel ID          : 1234567890 (จดไว้)
-✓ Channel Secret      : abc123def456... (คัดลอก)
+✓ Channel ID          : 1234567890 (จดไว้)2009188562
+✓ Channel Secret      : abc123def456... (คัดลอก)eea4667fc8b60613cc9b67262beb55ae
 ```
 
 ไปที่ **Channels > GUNPJ Bot > Messaging API > Channel access token**
@@ -50,7 +50,6 @@
 
 ```
 https://yourdomain.com/api/line-webhook
-```
 
 ⚠️ **หากใช้ localhost:**
 ```

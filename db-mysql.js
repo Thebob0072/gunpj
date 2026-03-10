@@ -84,6 +84,51 @@ async function initializeDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    // Create hackaton sessions table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS hackaton_sessions (
+        id VARCHAR(36) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL DEFAULT 'Hackathon 2026',
+        description TEXT,
+        emoji VARCHAR(20) NOT NULL DEFAULT '⚡',
+        totalBudget BIGINT NOT NULL DEFAULT 0,
+        createdAt DATETIME NOT NULL,
+        updatedAt DATETIME NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // Migrate: add description/emoji columns if table already existed
+    const alterCols = [
+      `ALTER TABLE hackaton_sessions ADD COLUMN description TEXT AFTER title`,
+      `ALTER TABLE hackaton_sessions ADD COLUMN emoji VARCHAR(20) NOT NULL DEFAULT '⚡' AFTER description`,
+    ];
+    for (const sql of alterCols) {
+      try { await connection.execute(sql); } catch (_) { /* column already exists */ }
+    }
+
+    // Create hackaton budget items table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS hackaton_items (
+        id VARCHAR(36) PRIMARY KEY,
+        sessionId VARCHAR(36) NOT NULL DEFAULT 'default',
+        title VARCHAR(255) NOT NULL,
+        budget BIGINT NOT NULL DEFAULT 0,
+        spent BIGINT NOT NULL DEFAULT 0,
+        category VARCHAR(100) NOT NULL DEFAULT 'อื่นๆ',
+        color VARCHAR(20) NOT NULL DEFAULT '#00ff88',
+        createdAt DATETIME NOT NULL,
+        updatedAt DATETIME NOT NULL,
+        FOREIGN KEY (sessionId) REFERENCES hackaton_sessions(id) ON DELETE CASCADE,
+        INDEX idx_sessionId (sessionId)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // Ensure a default session exists
+    await connection.execute(`
+      INSERT IGNORE INTO hackaton_sessions (id, title, description, emoji, totalBudget, createdAt, updatedAt)
+      VALUES ('default', 'Hackathon 2026', 'หัวข้อทั่วไป', '⚡', 0, NOW(), NOW())
+    `);
+
     console.log('✅ Database tables initialized successfully');
   } catch (error) {
     if (error.code !== 'ER_TABLE_EXISTS_ERROR') {
@@ -365,6 +410,144 @@ const LineMembers = {
   }
 };
 
+// Hackaton Budget functions
+const HackatonBudget = {
+  async getAllSessions() {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute(`
+        SELECT s.*,
+          COUNT(i.id)       AS itemCount,
+          COALESCE(SUM(i.spent), 0)  AS totalSpent,
+          COALESCE(SUM(i.budget), 0) AS totalAllocated
+        FROM hackaton_sessions s
+        LEFT JOIN hackaton_items i ON i.sessionId = s.id
+        GROUP BY s.id
+        ORDER BY s.createdAt ASC
+      `);
+      return rows;
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async createSession(id, title, description, emoji, totalBudget) {
+    const connection = await pool.getConnection();
+    try {
+      const now = new Date();
+      await connection.execute(
+        `INSERT INTO hackaton_sessions (id, title, description, emoji, totalBudget, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, title, description || '', emoji || '⚡', Number(totalBudget) || 0, now, now]
+      );
+      return this.getSession(id);
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async deleteSession(sessionId) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.execute('DELETE FROM hackaton_sessions WHERE id = ?', [sessionId]);
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async getSession(sessionId = 'default') {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute(
+        'SELECT * FROM hackaton_sessions WHERE id = ?', [sessionId]
+      );
+      return rows[0] || null;
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async updateSession(sessionId = 'default', title, totalBudget) {
+    const connection = await pool.getConnection();
+    try {
+      const now = new Date();
+      await connection.execute(
+        `INSERT INTO hackaton_sessions (id, title, totalBudget, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE title = ?, totalBudget = ?, updatedAt = ?`,
+        [sessionId, title, totalBudget, now, now, title, totalBudget, now]
+      );
+      return this.getSession(sessionId);
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async getAllItems(sessionId = 'default') {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute(
+        'SELECT * FROM hackaton_items WHERE sessionId = ? ORDER BY createdAt ASC',
+        [sessionId]
+      );
+      return rows;
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async getItemById(id) {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute(
+        'SELECT * FROM hackaton_items WHERE id = ?', [id]
+      );
+      return rows[0] || null;
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async createItem(item, sessionId = 'default') {
+    const connection = await pool.getConnection();
+    try {
+      const now = new Date();
+      await connection.execute(
+        `INSERT INTO hackaton_items (id, sessionId, title, budget, spent, category, color, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [item.id, sessionId, item.title, item.budget, item.spent, item.category, item.color, now, now]
+      );
+      return this.getItemById(item.id);
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async updateItem(id, item) {
+    const connection = await pool.getConnection();
+    try {
+      const now = new Date();
+      await connection.execute(
+        `UPDATE hackaton_items SET title = ?, budget = ?, spent = ?, category = ?, color = ?, updatedAt = ?
+         WHERE id = ?`,
+        [item.title, item.budget, item.spent, item.category, item.color, now, id]
+      );
+      return this.getItemById(id);
+    } finally {
+      await connection.release();
+    }
+  },
+
+  async deleteItem(id) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.execute('DELETE FROM hackaton_items WHERE id = ?', [id]);
+    } finally {
+      await connection.release();
+    }
+  }
+};
+
 // Initialize on module load
 initializeDatabase().catch(err => {
   console.error('Failed to initialize database:', err);
@@ -376,5 +559,6 @@ module.exports = {
   Tasks,
   Assignees,
   LineGroups,
-  LineMembers
+  LineMembers,
+  HackatonBudget
 };

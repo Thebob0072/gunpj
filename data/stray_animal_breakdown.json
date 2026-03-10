@@ -1,0 +1,43 @@
+{
+  "title": "งบประมาณดูแลสัตว์จรจัด ปี 2569",
+  "total_budget": 20000,
+  "currency": "THB",
+  "status": "สัตว์จรจัด",
+  "subcategories": [
+    {
+      "category": "อาหารและน้ำดื่ม",
+      "percentage": 35,
+      "amount": 7000,
+      "description": "อาหารเม็ด ขนมสัตว์ เค้กเนื้อ น้ำดื่มสะอาด",
+      "frequency": "ต่อวัน"
+    },
+    {
+      "category": "การรักษาและวัคซีน",
+      "percentage": 30,
+      "amount": 6000,
+      "description": "วัคซีน ยาฆ่าเชื้อ ตรวจสอบสุขภาพ",
+      "frequency": "ต่อเดือน"
+    },
+    {
+      "category": "ที่พักพิง",
+      "percentage": 20,
+      "amount": 4000,
+      "description": "ที่นอน อุปกรณ์พักผ่อน การทำความสะอาด",
+      "frequency": "ต่อเดือน"
+    },
+    {
+      "category": "สาธารณูปโภค",
+      "percentage": 10,
+      "amount": 2000,
+      "description": "ค่าไฟฟ้า น้ำประปา วัสดุทำความสะอาด",
+      "frequency": "ต่อเดือน"
+    },
+    {
+      "category": "บริหารจัดการ",
+      "percentage": 5,
+      "amount": 1000,
+      "description": "เอกสาร การจัดเก็บข้อมูล อื่นๆ",
+      "frequency": "ต่อเดือน"
+    }
+  ]
+}

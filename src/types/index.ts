@@ -49,3 +49,33 @@ export interface LineNotification {
   message: string;
   timestamp: string;
 }
+
+// Hackaton Budget Types
+export interface HackatonSession {
+  id: string;
+  title: string;
+  description: string;
+  emoji: string;
+  totalBudget: number;
+  createdAt?: string;
+  updatedAt?: string;
+  // computed stats (returned from server)
+  itemCount?: number;
+  totalSpent?: number;
+  totalAllocated?: number;
+}
+
+export interface HackatonBudgetItem {
+  id: string;
+  sessionId: string;
+  title: string;
+  budget: number;
+  spent: number;
+  category: string;
+  color: string;
+}
+
+export interface HackatonData {
+  session: HackatonSession;
+  items: HackatonBudgetItem[];
+}

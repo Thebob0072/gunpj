@@ -3,7 +3,7 @@ const cors = require('cors');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const dotenv = require('dotenv');
-const { Tasks, Assignees, LineGroups, LineMembers } = require('./db-mysql');
+const { pool, Tasks, Assignees, LineGroups, LineMembers, HackatonBudget } = require('./db-mysql');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -1161,8 +1161,146 @@ app.get('/api/line-group-members/:groupId', async (req, res) => {
 });
 
 // =============================================
+// HACKATON BUDGET ENDPOINTS
+// =============================================
+
+// GET list of all sessions (with stats)
+app.get('/api/hackaton-budget/sessions', async (req, res) => {
+  try {
+    const sessions = await HackatonBudget.getAllSessions();
+    res.status(200).json({ sessions });
+  } catch (error) {
+    console.error('Error fetching hackaton sessions:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST create new session
+app.post('/api/hackaton-budget/sessions', async (req, res) => {
+  try {
+    const { title, description, emoji, totalBudget } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+    const session = await HackatonBudget.createSession(
+      uuidv4(), title, description || '', emoji || '⚡', Number(totalBudget) || 0
+    );
+    res.status(201).json({ session });
+  } catch (error) {
+    console.error('Error creating hackaton session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE session (and all its items via CASCADE)
+app.delete('/api/hackaton-budget/sessions/:id', async (req, res) => {
+  try {
+    if (req.params.id === 'default') return res.status(400).json({ error: 'Cannot delete default session' });
+    await HackatonBudget.deleteSession(req.params.id);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error deleting hackaton session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET full session + items
+app.get('/api/hackaton-budget', async (req, res) => {
+  try {
+    const sessionId = req.query.sessionId || 'default';
+    const session = await HackatonBudget.getSession(sessionId);
+    const items = await HackatonBudget.getAllItems(sessionId);
+    res.status(200).json({ session: session || { id: sessionId, title: 'Hackathon 2026', totalBudget: 0 }, items });
+  } catch (error) {
+    console.error('Error fetching hackaton budget:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT update session (title / totalBudget)
+app.put('/api/hackaton-budget/session', async (req, res) => {
+  try {
+    const { sessionId = 'default', title, totalBudget } = req.body;
+    const updated = await HackatonBudget.updateSession(sessionId, title, Number(totalBudget) || 0);
+    res.status(200).json({ session: updated });
+  } catch (error) {
+    console.error('Error updating hackaton session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST create budget item
+app.post('/api/hackaton-budget/items', async (req, res) => {
+  try {
+    const { sessionId = 'default', title, budget, spent, category, color } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+    const item = await HackatonBudget.createItem(
+      { id: uuidv4(), title, budget: Number(budget) || 0, spent: Number(spent) || 0, category: category || 'อื่นๆ', color: color || '#00ff88' },
+      sessionId
+    );
+    res.status(201).json({ item });
+  } catch (error) {
+    console.error('Error creating hackaton item:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT update budget item
+app.put('/api/hackaton-budget/items/:id', async (req, res) => {
+  try {
+    const existing = await HackatonBudget.getItemById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Item not found' });
+    const { title, budget, spent, category, color } = req.body;
+    const updated = await HackatonBudget.updateItem(req.params.id, {
+      title: title ?? existing.title,
+      budget: budget !== undefined ? Number(budget) : existing.budget,
+      spent: spent !== undefined ? Number(spent) : existing.spent,
+      category: category ?? existing.category,
+      color: color ?? existing.color,
+    });
+    res.status(200).json({ item: updated });
+  } catch (error) {
+    console.error('Error updating hackaton item:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE budget item
+app.delete('/api/hackaton-budget/items/:id', async (req, res) => {
+  try {
+    await HackatonBudget.deleteItem(req.params.id);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error deleting hackaton item:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// =============================================
 // HEALTH CHECK
 // =============================================
+
+// =============================================
+// STRAY ANIMAL BUDGET BREAKDOWN
+// =============================================
+
+app.get('/api/stray-animal-budget', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    const rows = await connection.execute(
+      'SELECT id, fiscal_year, category, amount, percentage, description, frequency FROM stray_animal_budget_breakdown ORDER BY id'
+    );
+    connection.release();
+    
+    res.json({
+      total_budget: 20000,
+      currency: 'THB',
+      fiscal_year: 2569,
+      subcategories: rows[0] || []
+    });
+  } catch (error) {
+    console.error('Error fetching stray animal budget:', error);
+    res.status(500).json({ error: 'Failed to fetch stray animal budget data' });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Server is running' });
@@ -1187,6 +1325,12 @@ app.listen(port, () => {
   console.log('   GET    /api/line-groups');
   console.log('   GET    /api/line-groups-with-members');
   console.log('   GET    /api/line-group-members/:groupId');
+  console.log('   GET    /api/hackaton-budget');
+  console.log('   PUT    /api/hackaton-budget/session');
+  console.log('   POST   /api/hackaton-budget/items');
+  console.log('   PUT    /api/hackaton-budget/items/:id');
+  console.log('   DELETE /api/hackaton-budget/items/:id');
+  console.log('   GET    /api/stray-animal-budget');
   console.log('   GET    /api/health\n');
   setTelegramWebhook();
 });

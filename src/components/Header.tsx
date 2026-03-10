@@ -1,20 +1,22 @@
 import { FC } from 'react';
-import { List, BarChart3, Plus, Send, CheckCircle2 } from 'lucide-react';
+import { List, BarChart3, Plus, Send, CheckCircle2, Zap } from 'lucide-react';
 
 interface HeaderProps {
-  view: 'list' | 'dashboard';
-  setView: (view: 'list' | 'dashboard') => void;
+  view: 'list' | 'dashboard' | 'hackaton';
+  setView: (view: 'list' | 'dashboard' | 'hackaton') => void;
   onAddTask: () => void;
   onOpenLineGroupSelector: () => void;
   selectedLineGroupName?: string;
   selectedLineGroupMemberCount?: number;
 }
 
-const Header: FC<HeaderProps> = ({ view, setView, onAddTask, onOpenLineGroupSelector, selectedLineGroupName, selectedLineGroupMemberCount }) => (
-  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-8 pb-4 sm:pb-6 border-b-2 border-orange-200">
+const Header: FC<HeaderProps> = ({ view, setView, onAddTask, onOpenLineGroupSelector, selectedLineGroupName, selectedLineGroupMemberCount }) => {
+  const isHackaton = view === 'hackaton';
+  return (
+  <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-8 pb-4 sm:pb-6 border-b-2 ${isHackaton ? 'border-yellow-500/40' : 'border-orange-200'}`}>
     <div className="flex flex-col">
-      <h1 className="text-3xl sm:text-5xl font-black text-orange-800 tracking-tight drop-shadow-sm">
-        โปรแกรมจัดการงาน
+      <h1 className={`text-3xl sm:text-5xl font-black tracking-tight drop-shadow-sm ${isHackaton ? 'text-yellow-400 font-mono' : 'text-orange-800'}`}>
+        {isHackaton ? '⚡ HACKATON' : 'โปรแกรมจัดการงาน'}
       </h1>
       {selectedLineGroupName && (
         <div className="flex items-center gap-2 mt-2 sm:mt-3 text-xs sm:text-sm text-orange-700 font-semibold bg-orange-100 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full inline-fit w-fit">
@@ -40,6 +42,13 @@ const Header: FC<HeaderProps> = ({ view, setView, onAddTask, onOpenLineGroupSele
           <BarChart3 size={18} />
           <span className="hidden sm:inline">แดชบอร์ด</span>
         </button>
+        <button 
+          onClick={() => setView('hackaton')} 
+          className={view === 'hackaton' ? 'flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-bold transition-all duration-200 bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg shadow-yellow-500/50' : 'flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-bold transition-all duration-200 text-orange-700 hover:bg-orange-200/60'}
+        >
+          <Zap size={18} />
+          <span className="hidden sm:inline">Hackaton</span>
+        </button>
       </div>
       
       {/* LINE Button */}
@@ -61,6 +70,7 @@ const Header: FC<HeaderProps> = ({ view, setView, onAddTask, onOpenLineGroupSele
       </button>
     </div>
   </div>
-);
+  );
+};
 
 export default Header;

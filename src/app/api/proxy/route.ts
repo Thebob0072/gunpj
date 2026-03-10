@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -29,6 +29,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(await response.json());
     }
 
+    if (type === 'stray-animal-budget') {
+      // Fetch stray animal budget breakdown
+      const response = await fetch(`${API_BASE_URL}/stray-animal-budget`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Failed to fetch stray animal budget');
+      const data = await response.json();
+      return NextResponse.json(data);
+    }
+
     return NextResponse.json({ error: 'Invalid type parameter' }, { status: 400 });
   } catch (error) {
     return NextResponse.json(
@@ -37,3 +48,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

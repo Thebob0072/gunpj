@@ -6,6 +6,7 @@ import TaskList from '@/components/TaskList';
 import Dashboard from '@/components/Dashboard';
 import TaskModal from '@/components/TaskModal';
 import LineGroupSelector from '@/components/LineGroupSelector';
+import HackatonPage from '@/components/HackatonPage';
 import { Task, NewTask, Assignee, LineUser } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -41,7 +42,7 @@ const HomePage: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [view, setView] = useState<'list' | 'dashboard'>('list');
+  const [view, setView] = useState<'list' | 'dashboard' | 'hackaton'>('list');
   const [message, setMessage] = useState<string>('');
   const [isLineGroupSelectorOpen, setIsLineGroupSelectorOpen] = useState<boolean>(false);
   const [selectedLineGroupId, setSelectedLineGroupId] = useState<string | null>(null);
@@ -253,14 +254,19 @@ const handleCompleteTask = async (task: Task) => {
         </div>
       );
     }
+    if (view === 'hackaton') {
+      return <HackatonPage />;
+    }
     if (view === 'list') {
       return <TaskList tasks={tasks} onEdit={handleOpenModalForEdit} onDelete={handleDeleteTask} onComplete={handleCompleteTask} onSendNotification={handleSendNotification} />;
     }
     return <Dashboard tasks={tasks} dashboardData={[]} />;
   };
 
+  const isHackatonView = view === 'hackaton';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 w-full flex flex-col">
+    <div className="min-h-screen bg-white w-full flex flex-col">
       <div className="w-full flex-1 flex flex-col">
         {/* Message Alert */}
         {message && (
@@ -275,7 +281,7 @@ const handleCompleteTask = async (task: Task) => {
         )}
 
         {/* Main Content */}
-        <div className="flex-1 bg-gradient-to-br from-white to-orange-50 m-2 mt-2 sm:m-6 sm:mt-4 rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 space-y-4 sm:space-y-6 border-2 border-orange-200 overflow-y-auto">
+        <div className={`flex-1 m-2 mt-2 sm:m-6 sm:mt-4 rounded-2xl sm:rounded-3xl shadow-xl overflow-y-auto bg-white p-4 sm:p-8 space-y-4 sm:space-y-6 border border-gray-200`}>
           <Header view={view} setView={setView} onAddTask={handleOpenModalForAdd} onOpenLineGroupSelector={() => setIsLineGroupSelectorOpen(true)} selectedLineGroupName={selectedLineGroupName || undefined} selectedLineGroupMemberCount={selectedLineGroupMembers.length} />
           {renderContent()}
         </div>
