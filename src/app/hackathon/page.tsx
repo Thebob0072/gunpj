@@ -669,7 +669,7 @@ export default function HackathonPage() {
                   },
                   {
                     label: 'พื้นที่',
-                    value: STATISTICS.area_km2.toLocaleString('th-TH'),
+                    value: STATISTICS.area_km2.toLocaleString('th-TH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
                     unit: 'ตร.กม.',
                     ref: 'หน้า 3',
                   },
