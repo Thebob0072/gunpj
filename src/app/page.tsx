@@ -200,8 +200,21 @@ const handleCompleteTask = async (task: Task) => {
     };
 
     const notificationMessage = `🔔 แจ้งเตือน: งาน "${task.title}" (ผู้รับผิดชอบ: ${task.assignee}) เหลือเวลา: ${calculateTimeLeft(task.endDate)}`;
+    
+    // ส่งทาง Telegram
     sendTelegramNotification(notificationMessage);
-    showMessage(`ส่งข้อความแจ้งเตือนสำหรับงาน "${task.title}" แล้ว!`);
+    
+    // ส่งทาง LINE ถ้ามีกลุ่มเลือกไว้
+    if (selectedLineGroupId) {
+      sendLineNotification(selectedLineGroupId, notificationMessage, task.title, task.assignee, task.id);
+    }
+    
+    const channels = [];
+    if (TELEGRAM_API_URL) channels.push('Telegram');
+    if (selectedLineGroupId) channels.push('LINE');
+    
+    const channelText = channels.length > 0 ? ` ไปยัง ${channels.join(' และ ')}` : '';
+    showMessage(`ส่งข้อความแจ้งเตือนสำหรับงาน "${task.title}"${channelText} แล้ว!`);
   };
   const handleOpenModalForAdd = () => { setTaskToEdit(null); setIsModalOpen(true); };
   const handleOpenModalForEdit = (task: Task) => { setTaskToEdit(task); setIsModalOpen(true); };
